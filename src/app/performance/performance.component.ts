@@ -23,9 +23,15 @@ import { improvements, Improvement } from './solutions';
         min-height: 100vh;
         font-family: sans-serif;
       }
+      .start-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
       button {
         background-color: #444;
-        color: white;
+        color: black;
         border: none;
         padding: 0.5rem;
         border-radius: 4px;
@@ -70,10 +76,6 @@ import { improvements, Improvement } from './solutions';
       .improvement-title {
         font-size: 1.1rem;
         font-weight: bold;
-        margin-top: 0.5rem;
-      }
-      .improvement-details {
-        margin-bottom: 1.5rem;
       }
       .categories-container {
         display: flex;
@@ -106,11 +108,43 @@ import { improvements, Improvement } from './solutions';
         margin: 0 auto 1rem;
         box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
       }
+
+      .improvement-item {
+        display: block;
+        text-align: left;
+        border: 2px solid #a9a9a9;
+        border-radius: 16px;
+        padding: 12px;
+        margin-bottom: 1.5rem;
+        background-color: white;
+        transition: border 0.2s, background-color 0.2s;
+        cursor: pointer;
+      }
+
+      .improvement-item:hover:not(:disabled) {
+        border: 2px solid #696969;
+        background-color: #f7f7f7;
+      }
+
+      .improvement-item:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .improvement-item.applied {
+        border: 2px solid green;
+        background-color: #eaffea;
+      }
+
+      .improvement-item.unaffordable {
+        border: 2px solid darkorange;
+        background-color: #fff3e0;
+      }
     `,
   ],
   template: `
     <div class="game-container">
-      <div *ngIf="!gameStarted && !gameOver">
+      <div *ngIf="!gameStarted && !gameOver" class="start-info">
         <h1>Оптимизируй загрузку сайта</h1>
         <p>
           Выберите улучшения, чтобы сократить время загрузки. У вас ограничены
@@ -162,28 +196,26 @@ import { improvements, Improvement } from './solutions';
         <div class="categories-container">
           <div class="category-column" *ngFor="let category of categories">
             <div class="category-title">{{ category }}</div>
-            <div *ngFor="let imp of improvementsByCategory[category]">
+            <button
+              *ngFor="let imp of improvementsByCategory[category]"
+              class="improvement-item"
+              [class.applied]="imp.applied"
+              [class.unaffordable]="!canApply(imp) && !imp.applied"
+              (click)="tryApplyAction(imp)"
+              [disabled]="imp.applied || !canApply(imp)"
+            >
               <div class="improvement-title">{{ imp.name }}</div>
               <div class="improvement-details">
                 <div>Цена: {{ imp.costRub }}₽</div>
                 <div>Время: {{ imp.timeDays }} дн</div>
                 <div>Эффект: -{{ imp.effectMs }} мс</div>
-                <button
-                  (click)="tryApplyAction(imp)"
-                  [disabled]="!canApply(imp)"
-                  [class.applied]="imp.applied"
-                  [class.unaffordable]="!canApply(imp) && !imp.applied"
-                >
-                  {{ imp.applied ? 'Применено' : 'Применить' }}
-                </button>
               </div>
-            </div>
+            </button>
           </div>
         </div>
 
         <div class="chart-box">
           <h3>График прогресса загрузки</h3>
-          <!-- Здесь будет график с осями: время vs скорость загрузки -->
           <canvas id="progressChart"></canvas>
         </div>
       </div>

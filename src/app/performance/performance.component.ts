@@ -19,6 +19,10 @@ import { openDB } from 'idb';
   ],
   styles: [
     `
+      .title {
+        font-size: 48px;
+        margin-bottom: 24px;
+      }
       .game-container {
         background-color: #ccc;
         padding: 2rem;
@@ -69,6 +73,10 @@ import { openDB } from 'idb';
       button:disabled {
         opacity: 0.5;
       }
+      button .start {
+        color: white;
+        font-size: 24px;
+      }
       .applied {
         background-color: green !important;
       }
@@ -100,7 +108,7 @@ import { openDB } from 'idb';
         margin-top: 1rem;
       }
       .improvement-title {
-        font-size: 1.1rem;
+        font-size: 1.5rem;
         font-weight: bold;
       }
       .categories-container {
@@ -182,6 +190,11 @@ import { openDB } from 'idb';
         border: 2px solid darkorange;
         background-color: #fff3e0;
       }
+      .end-block {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
     `,
   ],
   template: `
@@ -191,7 +204,7 @@ import { openDB } from 'idb';
         <p>Введите ваше имя и email:</p>
         <input [(ngModel)]="playerName" placeholder="Имя" />
         <input [(ngModel)]="playerEmail" placeholder="Email" type="email" />
-        <button (click)="startGame()" [disabled]="!playerName || !playerEmail">
+        <button class="start" (click)="startGame()" [disabled]="!playerName || !playerEmail">
           Начать игру
         </button>
 
@@ -270,9 +283,9 @@ import { openDB } from 'idb';
         </div>
       </div>
 
-      <div *ngIf="gameOver">
-        <div *ngIf="gameWon">Поздравляем! Сайт стал супербыстрым! 🚀</div>
-        <div *ngIf="!gameWon">Игра окончена. Попробуйте ещё раз.</div>
+      <div *ngIf="gameOver" class="end-block">
+        <h1 *ngIf="gameWon" >Поздравляем! Сайт стал супербыстрым! 🚀</h1>
+        <h1 *ngIf="!gameWon"> Игра окончена. Попробуйте ещё раз.</h1>
 
         <div class="circle-group">
           <div class="circle-item" *ngFor="let metric of circleMetrics">
@@ -292,7 +305,7 @@ import { openDB } from 'idb';
           </div>
         </div>
 
-        <button (click)="reset()">Сброс</button>
+        <button class="start" (click)="reset()">Новая игра</button>
       </div>
     </div>
   `,
@@ -524,11 +537,19 @@ export class PerformanceComponent {
     this.gameOver = true;
     this.gameWon = won;
     this.gameStarted = false;
+
     clearInterval(this.countdownId);
+
+    this.saveResult(
+      this.playerName,
+      this.playerEmail,
+      this.totalImprovedMs,
+      this.timeLeft,
+      this.budgetLeft
+    );
   }
 
   reset() {
-    this.saveResult(this.playerName, this.playerEmail, this.totalImprovedMs, this.timeLeft, this.budgetLeft);
     this.playerName = '';
     this.playerEmail = '';
     this.timer = 60;
@@ -551,7 +572,13 @@ export class PerformanceComponent {
     this.currentVitals = { ...this.initialVitals };
   }
 
-  async saveResult(playerName: string, playerEmail: string, totalImprovedMs: number, timeLeft: number, budgetLeft: number) {
+  async saveResult(
+    playerName: string,
+    playerEmail: string,
+    totalImprovedMs: number,
+    timeLeft: number,
+    budgetLeft: number
+  ) {
     const db = await openDB('SpeedUpGameDB', 1, {
       upgrade(db) {
         db.createObjectStore('results', { keyPath: 'id', autoIncrement: true });
@@ -582,7 +609,11 @@ export class PerformanceComponent {
     this.leaderboard = all.sort((a, b) => b.score - a.score).slice(0, 10);
   }
 
-  calculateScore(totalImprovedMs: number, timeLeft: number, budgetLeft: number) {
+  calculateScore(
+    totalImprovedMs: number,
+    timeLeft: number,
+    budgetLeft: number
+  ) {
     const efficiency = totalImprovedMs;
     const timeBonus = Math.max(0, timeLeft);
     const budgetBonus = Math.max(0, budgetLeft / 10000);

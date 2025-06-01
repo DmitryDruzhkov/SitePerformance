@@ -1,12 +1,14 @@
 import { Component } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { improvements, Improvement } from './solutions';
+import { openDB } from 'idb';
 
 @Component({
   selector: 'app-performance',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   animations: [
     trigger('siteLoad', [
       transition('* => *', [
@@ -28,6 +30,30 @@ import { improvements, Improvement } from './solutions';
         flex-direction: column;
         align-items: center;
         justify-content: center;
+      }
+      input {
+        margin-bottom: 1rem;
+        padding: 0.5rem;
+        border-radius: 4px;
+        border: 1px solid #999;
+      }
+      .leaderboard {
+        margin-top: 2rem;
+        background: white;
+        padding: 1rem;
+        border-radius: 8px;
+        width: 100%;
+        max-width: 400px;
+      }
+      .leaderboard h3 {
+        margin-top: 0;
+      }
+      .leaderboard-item {
+        padding: 0.25rem 0;
+        border-bottom: 1px solid #ccc;
+      }
+      .leaderboard-item:last-child {
+        border-bottom: none;
       }
       button {
         background-color: #444;
@@ -95,6 +121,16 @@ import { improvements, Improvement } from './solutions';
         border: 1px solid #999;
         border-radius: 6px;
       }
+      .circle-group {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+      }
+      .circle-item {
+        text-align: center;
+      }
       .timer-circle {
         width: 120px;
         height: 120px;
@@ -103,12 +139,22 @@ import { improvements, Improvement } from './solutions';
         justify-content: center;
         align-items: center;
         font-weight: bold;
-        font-size: 1.5rem;
+        font-size: 1.2rem;
         color: #333;
-        margin: 0 auto 1rem;
+        margin: 0 auto 0.5rem auto;
         box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        text-align: center;
+        background-image: radial-gradient(
+          circle at center,
+          rgba(0, 0, 0, 0.05),
+          rgba(0, 0, 0, 0)
+        );
+        background-blend-mode: luminosity;
       }
-
+      .circle-label {
+        font-size: 0.95rem;
+        color: #444;
+      }
       .improvement-item {
         display: block;
         text-align: left;
@@ -120,22 +166,18 @@ import { improvements, Improvement } from './solutions';
         transition: border 0.2s, background-color 0.2s;
         cursor: pointer;
       }
-
       .improvement-item:hover:not(:disabled) {
         border: 2px solid #696969;
         background-color: #f7f7f7;
       }
-
       .improvement-item:disabled {
         opacity: 0.6;
         cursor: not-allowed;
       }
-
       .improvement-item.applied {
         border: 2px solid green;
         background-color: #eaffea;
       }
-
       .improvement-item.unaffordable {
         border: 2px solid darkorange;
         background-color: #fff3e0;
@@ -146,32 +188,40 @@ import { improvements, Improvement } from './solutions';
     <div class="game-container">
       <div *ngIf="!gameStarted && !gameOver" class="start-info">
         <h1>Оптимизируй загрузку сайта</h1>
-        <p>
-          Выберите улучшения, чтобы сократить время загрузки. У вас ограничены
-          бюджет и время.
-        </p>
-        <button (click)="startGame()">Начать игру</button>
+        <p>Введите ваше имя и email:</p>
+        <input [(ngModel)]="playerName" placeholder="Имя" />
+        <input [(ngModel)]="playerEmail" placeholder="Email" type="email" />
+        <button (click)="startGame()" [disabled]="!playerName || !playerEmail">
+          Начать игру
+        </button>
+
+        <div class="leaderboard" *ngIf="leaderboard.length">
+          <h3>Топ 10 участников</h3>
+          <div *ngFor="let entry of leaderboard" class="leaderboard-item">
+            {{ entry.name }} — {{ entry.score }} очков
+          </div>
+        </div>
       </div>
 
       <div *ngIf="gameStarted">
-        <div
-          class="timer-circle"
-          [style.background]="
-            'conic-gradient(#4caf50 ' +
-            ((60 - timer) / 60) * 360 +
-            'deg, #ddd 0deg)'
-          "
-        >
-          {{ timer }} сек
+        <div class="circle-group">
+          <div class="circle-item" *ngFor="let metric of circleMetrics">
+            <div
+              class="timer-circle"
+              [style.background]="
+                'conic-gradient(' +
+                metric.color +
+                ' ' +
+                metric.fill +
+                'deg, #ddd 0deg)'
+              "
+            >
+              {{ metric.value }}
+            </div>
+            <div class="circle-label">{{ metric.label }}</div>
+          </div>
         </div>
-        <div>Дней осталось: {{ timeLeft }}</div>
-        <div>Бюджет: {{ budgetLeft | number }}₽</div>
-        <div>Текущая загрузка: {{ currentLoadTime }} мс</div>
-        <div>Суммарное улучшение: -{{ totalImprovedMs }} мс</div>
-        <div>
-          Прогресс:
-          {{ 100 - (currentLoadTime / 5000) * 100 | number : '1.0-0' }}%
-        </div>
+
         <div *ngIf="hint">{{ hint }}</div>
 
         <div class="site-visuals-container">
@@ -223,12 +273,35 @@ import { improvements, Improvement } from './solutions';
       <div *ngIf="gameOver">
         <div *ngIf="gameWon">Поздравляем! Сайт стал супербыстрым! 🚀</div>
         <div *ngIf="!gameWon">Игра окончена. Попробуйте ещё раз.</div>
+
+        <div class="circle-group">
+          <div class="circle-item" *ngFor="let metric of circleMetrics">
+            <div
+              class="timer-circle"
+              [style.background]="
+                'conic-gradient(' +
+                metric.color +
+                ' ' +
+                metric.fill +
+                'deg, #ddd 0deg)'
+              "
+            >
+              {{ metric.value }}
+            </div>
+            <div class="circle-label">{{ metric.label }}</div>
+          </div>
+        </div>
+
         <button (click)="reset()">Сброс</button>
       </div>
     </div>
   `,
 })
 export class PerformanceComponent {
+  playerName = '';
+  playerEmail = '';
+  leaderboard: { name: string; score: number }[] = [];
+
   gameStarted = false;
   gameOver = false;
   gameWon = false;
@@ -259,6 +332,51 @@ export class PerformanceComponent {
     improvements.forEach((imprList, category) => {
       this.improvementsByCategory[category] = imprList;
     });
+  }
+
+  ngOnInit() {
+    this.loadLeaderboard();
+  }
+
+  get circleMetrics() {
+    return [
+      {
+        label: 'Оставшееся время',
+        color: '#4caf50',
+        value: `${this.timer} сек`,
+        fill: ((60 - this.timer) / 60) * 360,
+      },
+      {
+        label: 'Дней осталось',
+        color: '#03a9f4',
+        value: `${this.timeLeft} дн`,
+        fill: ((60 - this.timeLeft) / 60) * 360,
+      },
+      {
+        label: 'Оставшийся бюджет',
+        color: '#ff9800',
+        value: `${this.budgetLeft.toLocaleString()}₽`,
+        fill: ((1000000 - this.budgetLeft) / 1000000) * 360,
+      },
+      {
+        label: 'Текущая загрузка',
+        color: '#f44336',
+        value: `${this.currentLoadTime} мс`,
+        fill: ((5000 - this.currentLoadTime) / 5000) * 360,
+      },
+      {
+        label: 'Суммарное улучшение',
+        color: '#8bc34a',
+        value: `-${this.totalImprovedMs} мс`,
+        fill: (this.totalImprovedMs / 5000) * 360,
+      },
+      {
+        label: 'Прогресс',
+        color: '#673ab7',
+        value: `${(100 - (this.currentLoadTime / 5000) * 100).toFixed(0)}%`,
+        fill: (100 - (this.currentLoadTime / 5000) * 100) * 3.6,
+      },
+    ];
   }
 
   get appliedImprovements(): Improvement[] {
@@ -410,9 +528,19 @@ export class PerformanceComponent {
   }
 
   reset() {
+    this.saveResult(this.playerName, this.playerEmail, this.totalImprovedMs, this.timeLeft, this.budgetLeft);
+    this.playerName = '';
+    this.playerEmail = '';
+    this.timer = 60;
+    this.timeLeft = 60;
+    this.budgetLeft = 1000000;
+    this.currentLoadTime = 5000;
+    /* this.totalImprovedMs = 0; */
     this.gameStarted = false;
     this.gameOver = false;
     this.gameWon = false;
+    this.loadLeaderboard();
+
     this.hint = '';
     this.animating = false;
     this.improvementsByCategory = {};
@@ -421,5 +549,43 @@ export class PerformanceComponent {
       imprList.forEach((i) => (i.applied = false));
     });
     this.currentVitals = { ...this.initialVitals };
+  }
+
+  async saveResult(playerName: string, playerEmail: string, totalImprovedMs: number, timeLeft: number, budgetLeft: number) {
+    const db = await openDB('SpeedUpGameDB', 1, {
+      upgrade(db) {
+        db.createObjectStore('results', { keyPath: 'id', autoIncrement: true });
+      },
+    });
+    const score = this.calculateScore(totalImprovedMs, timeLeft, budgetLeft);
+    await db.add('results', {
+      name: playerName,
+      email: playerEmail,
+      score,
+      timestamp: Date.now(),
+    });
+    this.loadLeaderboard();
+  }
+
+  async loadLeaderboard() {
+    const db = await openDB('SpeedUpGameDB', 1, {
+      upgrade(db) {
+        if (!db.objectStoreNames.contains('results')) {
+          db.createObjectStore('results', {
+            keyPath: 'id',
+            autoIncrement: true,
+          });
+        }
+      },
+    });
+    const all = await db.getAll('results');
+    this.leaderboard = all.sort((a, b) => b.score - a.score).slice(0, 10);
+  }
+
+  calculateScore(totalImprovedMs: number, timeLeft: number, budgetLeft: number) {
+    const efficiency = totalImprovedMs;
+    const timeBonus = Math.max(0, timeLeft);
+    const budgetBonus = Math.max(0, budgetLeft / 10000);
+    return Math.round(efficiency + timeBonus * 50 + budgetBonus);
   }
 }

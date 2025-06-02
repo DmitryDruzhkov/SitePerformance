@@ -24,6 +24,11 @@ import { openDB } from 'idb';
         margin-bottom: 24px;
       }
       .game-container {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
         background-color: #ccc;
         padding: 2rem;
         min-height: 100vh;
@@ -35,14 +40,18 @@ import { openDB } from 'idb';
         align-items: center;
         justify-content: center;
       }
+      .input-info {
+        font-size: 1.5rem;
+      }
       input {
+        font-size: 32px;
         margin-bottom: 1rem;
         padding: 0.5rem;
         border-radius: 4px;
         border: 1px solid #999;
       }
       .leaderboard {
-        margin-top: 2rem;
+        margin-top: 5rem;
         background: white;
         padding: 1rem;
         border-radius: 8px;
@@ -73,7 +82,7 @@ import { openDB } from 'idb';
       button:disabled {
         opacity: 0.5;
       }
-      button .start {
+      button.start {
         color: white;
         font-size: 24px;
       }
@@ -84,9 +93,10 @@ import { openDB } from 'idb';
         background-color: darkorange !important;
       }
       .category-title {
-        font-size: 1.25rem;
+        font-size: 2.25rem;
         font-weight: bold;
         margin-bottom: 1rem;
+        text-align: center;
       }
       .site-image {
         width: 100%;
@@ -95,6 +105,9 @@ import { openDB } from 'idb';
         border-radius: 8px;
         transition: opacity 0.5s ease-in-out;
       }
+      .site-visuals-title {
+        text-align: center;
+      }
       .site-visuals-container {
         overflow: hidden;
         height: 350px;
@@ -102,7 +115,7 @@ import { openDB } from 'idb';
         gap: 2rem;
         align-items: flex-start;
         justify-content: center;
-        margin-bottom: 2rem;
+        margin-bottom: 3rem;
       }
       .vitals-box {
         margin-top: 1rem;
@@ -135,6 +148,9 @@ import { openDB } from 'idb';
         gap: 2rem;
         margin-bottom: 1rem;
         flex-wrap: wrap;
+      }
+      .circle-group.progress {
+        margin-bottom: 3rem;
       }
       .circle-item {
         text-align: center;
@@ -195,16 +211,24 @@ import { openDB } from 'idb';
         flex-direction: column;
         align-items: center;
       }
+      .end-block .circle-group {
+        margin-top: 5rem;
+        margin-bottom: 5rem;
+      }
     `,
   ],
   template: `
     <div class="game-container">
       <div *ngIf="!gameStarted && !gameOver" class="start-info">
         <h1>Оптимизируй загрузку сайта</h1>
-        <p>Введите ваше имя и email:</p>
+        <p class="input-info">Введите ваше имя и email:</p>
         <input [(ngModel)]="playerName" placeholder="Имя" />
         <input [(ngModel)]="playerEmail" placeholder="Email" type="email" />
-        <button class="start" (click)="startGame()" [disabled]="!playerName || !playerEmail">
+        <button
+          class="start"
+          (click)="startGame()"
+          [disabled]="!playerName || !playerEmail"
+        >
           Начать игру
         </button>
 
@@ -217,7 +241,7 @@ import { openDB } from 'idb';
       </div>
 
       <div *ngIf="gameStarted">
-        <div class="circle-group">
+        <div class="circle-group progress">
           <div class="circle-item" *ngFor="let metric of circleMetrics">
             <div
               class="timer-circle"
@@ -236,6 +260,8 @@ import { openDB } from 'idb';
         </div>
 
         <div *ngIf="hint">{{ hint }}</div>
+
+        <h2 class="site-visuals-title">Анимация открытия сайта</h2>
 
         <div class="site-visuals-container">
           <img
@@ -284,8 +310,8 @@ import { openDB } from 'idb';
       </div>
 
       <div *ngIf="gameOver" class="end-block">
-        <h1 *ngIf="gameWon" >Поздравляем! Сайт стал супербыстрым! 🚀</h1>
-        <h1 *ngIf="!gameWon"> Игра окончена. Попробуйте ещё раз.</h1>
+        <h1 *ngIf="gameWon">Поздравляем! Сайт стал супербыстрым! 🚀</h1>
+        <h1 *ngIf="!gameWon">Игра окончена. Попробуйте ещё раз.</h1>
 
         <div class="circle-group">
           <div class="circle-item" *ngFor="let metric of circleMetrics">
@@ -319,8 +345,8 @@ export class PerformanceComponent {
   gameOver = false;
   gameWon = false;
 
-  timeLeft = 60;
-  budgetLeft = 1_000_000;
+  timeLeft = 40;
+  budgetLeft = 1_500_000;
   currentLoadTime = 5000;
   timer = 1200;
   stage: 'white' | 'header' | 'skeleton' | 'content' = 'white';
@@ -363,13 +389,13 @@ export class PerformanceComponent {
         label: 'Дней осталось',
         color: '#03a9f4',
         value: `${this.timeLeft} дн`,
-        fill: ((60 - this.timeLeft) / 60) * 360,
+        fill: ((40 - this.timeLeft) / 40) * 360,
       },
       {
         label: 'Оставшийся бюджет',
         color: '#ff9800',
         value: `${this.budgetLeft.toLocaleString()}₽`,
-        fill: ((1000000 - this.budgetLeft) / 1000000) * 360,
+        fill: ((1500000 - this.budgetLeft) / 1500000) * 360,
       },
       {
         label: 'Текущая загрузка',
@@ -407,8 +433,8 @@ export class PerformanceComponent {
     this.gameOver = false;
     this.gameWon = false;
     this.timer = 3000;
-    this.timeLeft = 60;
-    this.budgetLeft = 1_000_000;
+    this.timeLeft = 40;
+    this.budgetLeft = 1_500_000;
     this.currentLoadTime = 5000;
     this.stage = 'white';
     this.hint = '';

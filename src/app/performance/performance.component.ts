@@ -482,7 +482,7 @@ export class PerformanceComponent {
       return;
     }
 
-    this.applyAction(action);
+    this.applyAction(action); 
     this.hint = '';
 
     if (this.budgetLeft < 100_000) {

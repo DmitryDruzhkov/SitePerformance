@@ -6,7 +6,8 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "deploy": "nx deploy --base-href=https://DmitryDruzhkov.github.io/SitePerformance/"
   },
   "private": true,
   "dependencies": {

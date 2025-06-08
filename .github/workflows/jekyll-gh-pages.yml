@@ -1,4 +1,4 @@
-name: Deploy Angular to GitHub Pages
+name: Deploy Angular 17+ to GitHub Pages
 
 on:
   push:
@@ -25,15 +25,23 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
 
-      - name: Install Angular CLI
-        run: npm install -g @angular/cli
-
-      - name: Install dependencies
-        run: npm install
+      - name: Install Angular CLI and dependencies
+        run: |
+          npm install -g @angular/cli
+          npm install
+          npm install @angular-devkit/build-angular --save-dev
 
       - name: Build Angular project
-        run: npm run build -- --configuration=production --output-path=docs
+        run: |
+          ng build --configuration=production --output-path=docs
+          # Для Angular 17+ с SSR (если используется)
+          # ng build --configuration=production --output-path=docs --prerender
+
+      - name: Create 404.html (for client-side routing)
+        run: |
+          cp docs/index.html docs/404.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -41,7 +49,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'docs' # Angular по умолчанию собирает в dist/<project-name>, но мы перенаправили в docs
+          path: 'docs'
 
   deploy:
     environment:

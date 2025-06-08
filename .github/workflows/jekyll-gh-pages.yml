@@ -1,4 +1,4 @@
-name: Deploy Angular 17+ to GitHub Pages
+name: Deploy Angular 19 to GitHub Pages
 
 on:
   push:
@@ -27,19 +27,17 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install Angular CLI and dependencies
+      - name: Install Angular CLI with legacy peer deps
         run: |
-          npm install -g @angular/cli
-          npm install
-          npm install @angular-devkit/build-angular --save-dev
+          npm install -g @angular/cli@19 --legacy-peer-deps
+          npm install --legacy-peer-deps
+          npm install @angular-devkit/build-angular@19 --legacy-peer-deps --save-dev
 
       - name: Build Angular project
         run: |
-          ng build --configuration=production --output-path=docs
-          # Для Angular 17+ с SSR (если используется)
-          # ng build --configuration=production --output-path=docs --prerender
+          ng build --configuration=production --output-path=docs --base-href "/"
 
-      - name: Create 404.html (for client-side routing)
+      - name: Create 404.html for client-side routing
         run: |
           cp docs/index.html docs/404.html
 

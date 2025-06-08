@@ -5,11 +5,7 @@
   "projects": {
     "SitePerformance": {
       "projectType": "application",
-      "schematics": {
-        "@schematics/angular:component": {
-          "style": "scss"
-        }
-      },
+      "schematics": {},
       "root": "",
       "sourceRoot": "src",
       "prefix": "app",
@@ -24,14 +20,12 @@
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
+              "src/favicon.ico",
+              "src/assets",
               {
                 "glob": "**/*",
-                "input": "public"
-              },
-              {
-                "glob": "**/*",
-                "input": "assets",
-                "output": "./assets"
+                "input": "public",
+                "output": "/"
               }
             ],
             "styles": ["src/styles.scss"],
@@ -39,17 +33,6 @@
           },
           "configurations": {
             "production": {
-              "assets": [
-              {
-                "glob": "**/*",
-                "input": "public"
-              },
-              {
-                "glob": "**/*",
-                "input": "assets",
-                "output": "./assets"
-              }
-            ],
               "budgets": [
                 {
                   "type": "initial",
@@ -62,7 +45,10 @@
                   "maximumError": "8kB"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "optimization": true,
+              "extractLicenses": true,
+              "sourceMap": false
             },
             "development": {
               "optimization": false,
@@ -72,49 +58,16 @@
           },
           "defaultConfiguration": "production"
         },
-        "serve": {
-          "builder": "@angular-devkit/build-angular:dev-server",
-          "configurations": {
-            "production": {
-              "buildTarget": "SitePerformance:build:production"
-            },
-            "development": {
-              "buildTarget": "SitePerformance:build:development"
-            }
-          },
-          "defaultConfiguration": "development"
-        },
-        "extract-i18n": {
-          "builder": "@angular-devkit/build-angular:extract-i18n"
-        },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
-          "options": {
-            "polyfills": ["zone.js", "zone.js/testing"],
-            "tsConfig": "tsconfig.spec.json",
-            "inlineStyleLanguage": "scss",
-            "assets": [
-              {
-                "glob": "**/*",
-                "input": "public"
-              }
-            ],
-            "styles": ["src/styles.scss"],
-            "scripts": []
-          }
-        },
         "deploy": {
           "builder": "angular-cli-ghpages:deploy",
           "options": {
             "baseHref": "/SitePerformance/",
-            "dir": "dist/site-performance/browser"
+            "dir": "dist/site-performance/browser",
+            "cname": "yourdomain.com"
           },
           "configurations": {
             "production": {
               "buildTarget": "SitePerformance:build:production"
-            },
-            "development": {
-              "buildTarget": "SitePerformance:build:development"
             }
           }
         }
@@ -122,6 +75,6 @@
     }
   },
   "cli": {
-    "analytics": "f4b1512a-e7a5-4719-a3a3-93008b5bfb7d"
+    "analytics": "832e5096-136d-4893-9dd1-8972433bfb2c"
   }
 }

@@ -177,6 +177,7 @@ import { openDB } from 'idb';
       }
       .circle-label {
         font-size: 0.95rem;
+        font-weight: bold;
         color: #444;
       }
       .improvement-item {
@@ -215,6 +216,40 @@ import { openDB } from 'idb';
         margin-top: 5rem;
         margin-bottom: 5rem;
       }
+
+      /* Radial progress bar styles */
+      .radial-progress {
+        width: 120px;
+        height: 120px;
+        position: relative;
+        margin: 0 auto 0.5rem auto;
+      }
+      .radial-progress__percent {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-weight: bold;
+        font-size: 1.2rem;
+        color: #333;
+      }
+      .radial-progress__svg {
+        width: 100%;
+        height: 100%;
+        transform: rotate(-90deg);
+      }
+      .radial-progress__background {
+        fill: none;
+        stroke: #ddd;
+        stroke-width: 3px;
+      }
+      .radial-progress__fill {
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 3px;
+        stroke-linecap: round;
+        transition: stroke-dashoffset 0.5s ease-in-out;
+      }
     `,
   ],
   template: `
@@ -243,17 +278,25 @@ import { openDB } from 'idb';
       <div *ngIf="gameStarted">
         <div class="circle-group progress">
           <div class="circle-item" *ngFor="let metric of circleMetrics">
-            <div
-              class="timer-circle"
-              [style.background]="
-                'conic-gradient(' +
-                metric.color +
-                ' ' +
-                metric.fill +
-                'deg, #ddd 0deg)'
-              "
-            >
-              {{ metric.value }}
+            <div class="radial-progress">
+              <span class="radial-progress__percent">{{ metric.value }}</span>
+              <svg class="radial-progress__svg" viewBox="0 0 36 36">
+                <circle
+                  class="radial-progress__background"
+                  cx="18"
+                  cy="18"
+                  r="15.9155"
+                ></circle>
+                <circle
+                  class="radial-progress__fill"
+                  [attr.stroke-dasharray]="'100, 100'"
+                  [attr.stroke-dashoffset]="100 - metric.fill / 3.6"
+                  [style.color]="metric.color"
+                  cx="18"
+                  cy="18"
+                  r="15.9155"
+                ></circle>
+              </svg>
             </div>
             <div class="circle-label">{{ metric.label }}</div>
           </div>
@@ -315,17 +358,25 @@ import { openDB } from 'idb';
 
         <div class="circle-group">
           <div class="circle-item" *ngFor="let metric of circleMetrics">
-            <div
-              class="timer-circle"
-              [style.background]="
-                'conic-gradient(' +
-                metric.color +
-                ' ' +
-                metric.fill +
-                'deg, #ddd 0deg)'
-              "
-            >
-              {{ metric.value }}
+            <div class="radial-progress">
+              <span class="radial-progress__percent">{{ metric.value }}</span>
+              <svg class="radial-progress__svg" viewBox="0 0 36 36">
+                <circle
+                  class="radial-progress__background"
+                  cx="18"
+                  cy="18"
+                  r="15.9155"
+                ></circle>
+                <circle
+                  class="radial-progress__fill"
+                  [attr.stroke-dasharray]="'100, 100'"
+                  [attr.stroke-dashoffset]="100 - metric.fill / 3.6"
+                  [style.color]="metric.color"
+                  cx="18"
+                  cy="18"
+                  r="15.9155"
+                ></circle>
+              </svg>
             </div>
             <div class="circle-label">{{ metric.label }}</div>
           </div>
@@ -482,7 +533,7 @@ export class PerformanceComponent {
       return;
     }
 
-    this.applyAction(action); 
+    this.applyAction(action);
     this.hint = '';
 
     if (this.budgetLeft < 100_000) {
@@ -582,7 +633,6 @@ export class PerformanceComponent {
     this.timeLeft = 60;
     this.budgetLeft = 1000000;
     this.currentLoadTime = 5000;
-    /* this.totalImprovedMs = 0; */
     this.gameStarted = false;
     this.gameOver = false;
     this.gameWon = false;

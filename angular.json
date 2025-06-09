@@ -56,12 +56,26 @@
           },
           "defaultConfiguration": "production"
         },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "SitePerformance:build:production"
+            },
+            "development": {
+              "buildTarget": "SitePerformance:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "extract-i18n": {
+          "builder": "@angular-devkit/build-angular:extract-i18n"
+        },
         "deploy": {
           "builder": "angular-cli-ghpages:deploy",
           "options": {
             "baseHref": "/SitePerformance/",
-            "dir": "dist/site-performance/browser",
-            "cname": "yourdomain.com"
+            "dir": "dist/site-performance/browser"
           },
           "configurations": {
             "production": {

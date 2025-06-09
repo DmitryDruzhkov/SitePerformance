@@ -392,7 +392,7 @@ export class PerformanceComponent {
   playerEmail = '';
   leaderboard: { name: string; score: number }[] = [];
 
-  gameStarted = false;
+  gameStarted = true; // убрать после подготовки дизайна
   gameOver = false;
   gameWon = false;
 

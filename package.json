@@ -1,9 +1,10 @@
 {
   "name": "site-performance",
+  "projectType": "application",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "start": "ng serve SitePerformance",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "build:prod": "ng build --configuration development",

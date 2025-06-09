@@ -4,11 +4,13 @@ import { CommonModule } from '@angular/common';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { improvements, Improvement } from './solutions';
 import { openDB } from 'idb';
+import {MatInputModule} from '@angular/material/input';
+import {MatFormFieldModule} from '@angular/material/form-field';
 
 @Component({
   selector: 'app-performance',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MatFormFieldModule, MatInputModule],
   animations: [
     trigger('siteLoad', [
       transition('* => *', [
@@ -24,7 +26,6 @@ import { openDB } from 'idb';
         margin-bottom: 24px;
       }
       .game-container {
-        height: 100%;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -134,13 +135,6 @@ import { openDB } from 'idb';
         flex: 1 1 300px;
         display: flex;
         flex-direction: column;
-      }
-      .chart-box {
-        margin-top: 2rem;
-        background: white;
-        padding: 1rem;
-        border: 1px solid #999;
-        border-radius: 6px;
       }
       .circle-group {
         display: flex;
@@ -258,6 +252,7 @@ import { openDB } from 'idb';
         <h1>Оптимизируй загрузку сайта</h1>
         <p class="input-info">Введите ваше имя и email:</p>
         <input [(ngModel)]="playerName" placeholder="Имя" />
+        
         <input [(ngModel)]="playerEmail" placeholder="Email" type="email" />
         <button
           class="start"
@@ -340,15 +335,10 @@ import { openDB } from 'idb';
               <div class="improvement-details">
                 <div>Цена: {{ imp.costRub }}₽</div>
                 <div>Время: {{ imp.timeDays }} дн</div>
-                <div>Эффект: -{{ imp.effectMs }} мс</div>
+                <!-- <div>Эффект: -{{ imp.effectMs }} мс</div> -->
               </div>
             </button>
           </div>
-        </div>
-
-        <div class="chart-box">
-          <h3>График прогресса загрузки</h3>
-          <canvas id="progressChart"></canvas>
         </div>
       </div>
 

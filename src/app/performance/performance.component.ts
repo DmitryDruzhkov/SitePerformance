@@ -1,11 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, signal, WritableSignal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { improvements, Improvement } from './solutions';
 import { openDB } from 'idb';
-import {MatInputModule} from '@angular/material/input';
-import {MatFormFieldModule} from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 @Component({
   selector: 'app-performance',
@@ -21,6 +21,13 @@ import {MatFormFieldModule} from '@angular/material/form-field';
   ],
   styles: [
     `
+      h1 {
+        font-weight: 700;
+        font-size: 31px;
+        line-height: 100%;
+        letter-spacing: 0%;
+        vertical-align: middle;
+      }
       .title {
         font-size: 48px;
         margin-bottom: 24px;
@@ -30,10 +37,10 @@ import {MatFormFieldModule} from '@angular/material/form-field';
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        background-color: #ccc;
         padding: 2rem;
         min-height: 100vh;
         font-family: sans-serif;
+        padding: 32px;
       }
       .start-info {
         display: flex;
@@ -42,14 +49,32 @@ import {MatFormFieldModule} from '@angular/material/form-field';
         justify-content: center;
       }
       .input-info {
-        font-size: 1.5rem;
+        font-weight: 400;
+        font-size: 24px;
+        line-height: 100%;
+        letter-spacing: 0%;
+        text-align: center;
+        vertical-align: middle;
       }
       input {
+        font-weight: 400;
         font-size: 32px;
+        line-height: 100%;
+        letter-spacing: 0%;
+        vertical-align: middle;
         margin-bottom: 1rem;
         padding: 0.5rem;
-        border-radius: 4px;
-        border: 1px solid #999;
+        border-radius: 16px;
+        border: 2px solid #00bf6a;
+        color: #00bf6a;
+
+        &::placeholder {
+          color: #00bf6a40;
+        }
+
+        &:focus {
+          border: 2px solid #00bf6a;
+        }
       }
       .leaderboard {
         margin-top: 5rem;
@@ -70,6 +95,7 @@ import {MatFormFieldModule} from '@angular/material/form-field';
         border-bottom: none;
       }
       button {
+        cursor: pointer;
         background-color: #444;
         color: black;
         border: none;
@@ -78,26 +104,44 @@ import {MatFormFieldModule} from '@angular/material/form-field';
         transition: background-color 0.2s;
       }
       button:hover:not(:disabled) {
-        background-color: #222;
+        background-color: #00a0ff;
       }
       button:disabled {
         opacity: 0.5;
       }
       button.start {
-        color: white;
+        border-radius: 16px;
+        font-weight: 700;
         font-size: 24px;
+        line-height: 100%;
+        letter-spacing: 0%;
+        text-align: center;
+        vertical-align: middle;
+        padding: 8px 20px;
+        background-color: #001e64;
+        color: #ffffff;
+        margin-top: 32px;
+        /* :hover {
+          background-color: #001e64;
+        } */
       }
-      .applied {
+      /* .applied {
         background-color: green !important;
-      }
-      .unaffordable {
+      } */
+      /* .unaffordable {
         background-color: darkorange !important;
-      }
+      } */
       .category-title {
-        font-size: 2.25rem;
+        font-size: 34px;
         font-weight: bold;
         margin-bottom: 1rem;
         text-align: center;
+        border-radius: 16px;
+        padding-top: 4px;
+        padding-bottom: 4px;
+        padding-left: 14px;
+        background-color: #001e64;
+        color: #ffffff;
       }
       .site-image {
         width: 100%;
@@ -106,24 +150,54 @@ import {MatFormFieldModule} from '@angular/material/form-field';
         border-radius: 8px;
         transition: opacity 0.5s ease-in-out;
       }
-      .site-visuals-title {
+      /* .site-visuals-title {
         text-align: center;
-      }
+      } */
       .site-visuals-container {
         overflow: hidden;
         height: 350px;
         display: flex;
         gap: 2rem;
-        align-items: flex-start;
-        justify-content: center;
+        align-items: center;
+        /* justify-content: center; */
         margin-bottom: 3rem;
       }
       .vitals-box {
         margin-top: 1rem;
       }
+      .vitals-box-title {
+        font-weight: 700;
+        font-size: 24px;
+        line-height: 100%;
+        color: #001e64;
+      }
       .improvement-title {
-        font-size: 1.5rem;
-        font-weight: bold;
+        font-weight: 400;
+        font-size: 24px;
+        vertical-align: middle;
+        margin-bottom: 8px;
+      }
+      .improvement-details {
+        display: flex;
+      }
+      .improvement-details-item:last-child {
+        margin-left: 12px;
+      }
+      .improvement-details-item {
+        font-weight: 700;
+        font-size: 15px;
+        line-height: 100%;
+        padding: 8px 16px;
+        background-color: #001e64;
+        border-radius: 16px;
+        width: fit-content;
+        color: white;
+      }
+      .improvement-details-price {
+        background-color: #001e64;
+      }
+      .improvement-details-time {
+        background-color: #00a0ff;
       }
       .categories-container {
         display: flex;
@@ -136,22 +210,47 @@ import {MatFormFieldModule} from '@angular/material/form-field';
         display: flex;
         flex-direction: column;
       }
+      .game-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+      }
+      .metrics {
+        display: flex;
+        flex-direction: column;
+        width: 1090px;
+      }
+      .metrics-timers {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 40px;
+      }
+      .metrics-timer {
+        font-family: font family/Font 1;
+        font-weight: font weight/700;
+        font-size: 136px;
+        line-height: 100%;
+        letter-spacing: 0%;
+        vertical-align: bottom;
+        color: #03a9f459;
+      }
       .circle-group {
         display: flex;
         justify-content: center;
         gap: 2rem;
-        margin-bottom: 1rem;
+        /* margin-bottom: 1rem; */
         flex-wrap: wrap;
       }
-      .circle-group.progress {
+      /* .circle-group.progress {
         margin-bottom: 3rem;
-      }
+      } */
       .circle-item {
         text-align: center;
       }
       .timer-circle {
-        width: 120px;
-        height: 120px;
+        width: 154px;
+        height: 154px;
         border-radius: 50%;
         display: flex;
         justify-content: center;
@@ -177,7 +276,7 @@ import {MatFormFieldModule} from '@angular/material/form-field';
       .improvement-item {
         display: block;
         text-align: left;
-        border: 2px solid #a9a9a9;
+        border: 2px solid #00bf6a;
         border-radius: 16px;
         padding: 12px;
         margin-bottom: 1.5rem;
@@ -186,35 +285,59 @@ import {MatFormFieldModule} from '@angular/material/form-field';
         cursor: pointer;
       }
       .improvement-item:hover:not(:disabled) {
-        border: 2px solid #696969;
-        background-color: #f7f7f7;
+        /* border: 2px solid #696969;
+        background-color: #f7f7f7; */
+        border: 2px solid #00bf6a;
+        background-color: #00bf6a40;
+
+        .improvement-details-time,
+        .improvement-details-price {
+          background-color: #00bf6a40;
+        }
       }
       .improvement-item:disabled {
         opacity: 0.6;
         cursor: not-allowed;
       }
       .improvement-item.applied {
-        border: 2px solid green;
-        background-color: #eaffea;
+        border: 2px solid #00bf6a;
+        background-color: #00bf6a;
+
+        .improvement-details-time,
+        .improvement-details-price {
+          background-color: #00bf6a;
+          color: #0000004d;
+        }
+        .improvement-title {
+          color: #0000004d;
+        }
       }
       .improvement-item.unaffordable {
-        border: 2px solid darkorange;
-        background-color: #fff3e0;
+        border: 2px solid #CCCCCC80;
+        background-color: #CCCCCC80;
+
+        .improvement-details-time,
+        .improvement-details-price {
+          background-color: #CCCCCC80;
+          color: #0000004D;
+        }
+        .improvement-title {
+          color: #0000004D;
+        }
       }
       .end-block {
         display: flex;
         flex-direction: column;
         align-items: center;
       }
-      .end-block .circle-group {
+      /* .end-block .circle-group {
         margin-top: 5rem;
-        margin-bottom: 5rem;
-      }
+      } */
 
       /* Radial progress bar styles */
       .radial-progress {
-        width: 120px;
-        height: 120px;
+        width: 154px;
+        height: 154px;
         position: relative;
         margin: 0 auto 0.5rem auto;
       }
@@ -252,7 +375,7 @@ import {MatFormFieldModule} from '@angular/material/form-field';
         <h1>Оптимизируй загрузку сайта</h1>
         <p class="input-info">Введите ваше имя и email:</p>
         <input [(ngModel)]="playerName" placeholder="Имя" />
-        
+
         <input [(ngModel)]="playerEmail" placeholder="Email" type="email" />
         <button
           class="start"
@@ -270,36 +393,47 @@ import {MatFormFieldModule} from '@angular/material/form-field';
         </div>
       </div>
 
-      <div *ngIf="gameStarted">
-        <div class="circle-group progress">
-          <div class="circle-item" *ngFor="let metric of circleMetrics">
-            <div class="radial-progress">
-              <span class="radial-progress__percent">{{ metric.value }}</span>
-              <svg class="radial-progress__svg" viewBox="0 0 36 36">
-                <circle
-                  class="radial-progress__background"
-                  cx="18"
-                  cy="18"
-                  r="15.9155"
-                ></circle>
-                <circle
-                  class="radial-progress__fill"
-                  [attr.stroke-dasharray]="'100, 100'"
-                  [attr.stroke-dashoffset]="100 - metric.fill / 3.6"
-                  [style.color]="metric.color"
-                  cx="18"
-                  cy="18"
-                  r="15.9155"
-                ></circle>
-              </svg>
+      <div *ngIf="gameStarted" class="game-content">
+        <div class="metrics">
+          <div class="metrics-timers">
+            <div class="circle-group progress">
+              <div class="circle-item" *ngFor="let metric of circleMetrics">
+                <div class="radial-progress">
+                  <span class="radial-progress__percent">{{
+                    metric.value
+                  }}</span>
+                  <svg class="radial-progress__svg" viewBox="0 0 36 36">
+                    <circle
+                      class="radial-progress__background"
+                      cx="18"
+                      cy="18"
+                      r="15.9155"
+                    ></circle>
+                    <circle
+                      class="radial-progress__fill"
+                      [attr.stroke-dasharray]="'100, 100'"
+                      [attr.stroke-dashoffset]="100 - metric.fill / 3.6"
+                      [style.color]="metric.color"
+                      cx="18"
+                      cy="18"
+                      r="15.9155"
+                    ></circle>
+                  </svg>
+                </div>
+                <!-- <div class="circle-label">{{ metric.label }}</div> -->
+              </div>
             </div>
-            <div class="circle-label">{{ metric.label }}</div>
+
+            <div class="metrics-timer">
+              {{ timerString() }}
+            </div>
           </div>
+          <div class="progress-group"></div>
         </div>
 
         <div *ngIf="hint">{{ hint }}</div>
 
-        <h2 class="site-visuals-title">Анимация открытия сайта</h2>
+        <!-- <h2 class="site-visuals-title">Анимация открытия сайта</h2> -->
 
         <div class="site-visuals-container">
           <img
@@ -310,13 +444,47 @@ import {MatFormFieldModule} from '@angular/material/form-field';
           />
 
           <div class="vitals-box">
-            <h3>Показатели Web Vitals</h3>
-            <ul>
+            <div class="vitals-box-title">Показатели Web Vitals</div>
+            <!-- <ul>
               <li>FCP: {{ currentVitals.fcp }} мс</li>
               <li>LCP: {{ currentVitals.lcp }} мс</li>
               <li>INP: {{ currentVitals.inp }} мс</li>
               <li>TTFB: {{ currentVitals.ttfb }} мс</li>
-            </ul>
+            </ul> -->
+            <div>
+              <div>
+                <div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                </div>
+                <div>FCP</div>
+              </div>
+              <div>
+                <div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                </div>
+                <div>INP</div>
+              </div>
+              <div>
+                <div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                </div>
+                <div>LCP</div>
+              </div>
+              <div>
+                <div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                </div>
+                <div>TTFB</div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -333,8 +501,12 @@ import {MatFormFieldModule} from '@angular/material/form-field';
             >
               <div class="improvement-title">{{ imp.name }}</div>
               <div class="improvement-details">
-                <div>Цена: {{ imp.costRub }}₽</div>
-                <div>Время: {{ imp.timeDays }} дн</div>
+                <div class="improvement-details-item improvement-details-time">
+                  {{ imp.timeDays }} дн
+                </div>
+                <div class="improvement-details-item improvement-details-price">
+                  {{ imp.costRub }} ₽
+                </div>
                 <!-- <div>Эффект: -{{ imp.effectMs }} мс</div> -->
               </div>
             </button>
@@ -390,6 +562,7 @@ export class PerformanceComponent {
   budgetLeft = 1_500_000;
   currentLoadTime = 5000;
   timer = 1200;
+  timerString: WritableSignal<string> = signal('');
   stage: 'white' | 'header' | 'skeleton' | 'content' = 'white';
 
   countdownId: any;
@@ -420,31 +593,31 @@ export class PerformanceComponent {
 
   get circleMetrics() {
     return [
-      {
+      /* {
         label: 'Оставшееся время',
         color: '#4caf50',
         value: `${this.timer} сек`,
         fill: ((60 - this.timer) / 60) * 360,
-      },
+      }, */
       {
         label: 'Дней осталось',
-        color: '#03a9f4',
+        color: '#00A0FF',
         value: `${this.timeLeft} дн`,
         fill: ((40 - this.timeLeft) / 40) * 360,
       },
       {
         label: 'Оставшийся бюджет',
-        color: '#ff9800',
+        color: '#001E64',
         value: `${this.budgetLeft.toLocaleString()}₽`,
         fill: ((1500000 - this.budgetLeft) / 1500000) * 360,
       },
       {
         label: 'Текущая загрузка',
-        color: '#f44336',
+        color: '#00BF6A',
         value: `${this.currentLoadTime} мс`,
         fill: ((5000 - this.currentLoadTime) / 5000) * 360,
       },
-      {
+      /* {
         label: 'Суммарное улучшение',
         color: '#8bc34a',
         value: `-${this.totalImprovedMs} мс`,
@@ -455,7 +628,7 @@ export class PerformanceComponent {
         color: '#673ab7',
         value: `${(100 - (this.currentLoadTime / 5000) * 100).toFixed(0)}%`,
         fill: (100 - (this.currentLoadTime / 5000) * 100) * 3.6,
-      },
+      }, */
     ];
   }
 
@@ -491,6 +664,7 @@ export class PerformanceComponent {
 
     this.countdownId = setInterval(() => {
       this.timer--;
+      this.timerString.set(this.formatSeconds(this.timer));
       if (this.timer <= 0) {
         this.endGame();
       }
@@ -684,5 +858,17 @@ export class PerformanceComponent {
     const timeBonus = Math.max(0, timeLeft);
     const budgetBonus = Math.max(0, budgetLeft / 10000);
     return Math.round(efficiency + timeBonus * 50 + budgetBonus);
+  }
+
+  public formatSeconds(seconds: number): string {
+    const absSeconds = Math.abs(seconds); // Учитываем отрицательное время
+    const minutes = Math.floor(absSeconds / 60);
+    const remainingSeconds = absSeconds % 60;
+
+    const sign = seconds < 0 ? '-' : '';
+
+    return `${sign}${String(minutes).padStart(2, '0')}:${String(
+      remainingSeconds
+    ).padStart(2, '0')}`;
   }
 }

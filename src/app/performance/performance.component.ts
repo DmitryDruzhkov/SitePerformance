@@ -176,7 +176,9 @@ const BaseLoadTime: number = 5000;
       }
       .vitals {
         display: flex;
-        flex-direction: column;
+        flex-wrap: wrap;
+        width: 350px;
+        gap: 30px 40px;
       }
       .vitals-item {
         display: flex;
@@ -185,13 +187,14 @@ const BaseLoadTime: number = 5000;
       .vitals-container {
         width: 144px;
         display: flex;
-        overflow: hidden;
-        border-radius: 6px;
+        position: relative;
+        /* overflow: hidden; */
       }
       .vitals-red {
         width: 48px;
         height: 13px;
         background-color: #f44336;
+        border-radius: 6px 0 0 6px;
       }
       .vitals-orange {
         width: 48px;
@@ -202,6 +205,7 @@ const BaseLoadTime: number = 5000;
         width: 48px;
         height: 13px;
         background-color: #00bf6a;
+        border-radius: 0 6px 6px 0;
       }
 
       .vitals-label {
@@ -212,6 +216,18 @@ const BaseLoadTime: number = 5000;
         vertical-align: middle;
         margin-top: 6px;
       }
+      .vitals-indicator {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        top: -3px;
+        right: 0;
+        z-index: 10;
+        border-radius: 20px;
+        border: 4px solid white;
+        transition: 0.5s ease-in-out;
+      }
+
       .improvement-title {
         font-weight: 400;
         font-size: 24px;
@@ -434,7 +450,6 @@ const BaseLoadTime: number = 5000;
           right: 91px;
         }
       }
-      
     `,
   ],
   template: `
@@ -532,6 +547,10 @@ const BaseLoadTime: number = 5000;
                   <div class="vitals-red"></div>
                   <div class="vitals-orange"></div>
                   <div class="vitals-green"></div>
+                  <div
+                    class="vitals-indicator"
+                    [style.right.px]="calculateVitalPosition('fcp')"
+                  ></div>
                 </div>
                 <div class="vitals-label">FCP</div>
               </div>
@@ -540,6 +559,10 @@ const BaseLoadTime: number = 5000;
                   <div class="vitals-red"></div>
                   <div class="vitals-orange"></div>
                   <div class="vitals-green"></div>
+                  <div
+                    class="vitals-indicator"
+                    [style.right.px]="calculateVitalPosition('inp')"
+                  ></div>
                 </div>
                 <div class="vitals-label">INP</div>
               </div>
@@ -548,6 +571,10 @@ const BaseLoadTime: number = 5000;
                   <div class="vitals-red"></div>
                   <div class="vitals-orange"></div>
                   <div class="vitals-green"></div>
+                  <div
+                    class="vitals-indicator"
+                    [style.right.px]="calculateVitalPosition('lcp')"
+                  ></div>
                 </div>
                 <div class="vitals-label">LCP</div>
               </div>
@@ -556,6 +583,10 @@ const BaseLoadTime: number = 5000;
                   <div class="vitals-red"></div>
                   <div class="vitals-orange"></div>
                   <div class="vitals-green"></div>
+                  <div
+                    class="vitals-indicator"
+                    [style.right.px]="calculateVitalPosition('ttfb')"
+                  ></div>
                 </div>
                 <div class="vitals-label">TTFB</div>
               </div>
@@ -650,10 +681,10 @@ export class PerformanceComponent {
   categories = Array.from(improvements.keys());
 
   initialVitals = {
-    fcp: 3000,
-    lcp: 4000,
-    inp: 150,
-    ttfb: 600,
+    fcp: 4000,
+    lcp: 5000,
+    inp: 600,
+    ttfb: 1400,
   };
 
   currentVitals = { ...this.initialVitals };
@@ -785,6 +816,58 @@ export class PerformanceComponent {
     }
   }
 
+  calculateVitalPosition(metric: keyof typeof this.currentVitals): number {
+    const value = this.currentVitals[metric];
+    let position = 0;
+
+    switch (metric) {
+      case 'fcp':
+        if (value <= 1800) {
+          // Зелёная зона: 0-48px (0-1800 мс)
+          position = (value / 1800) * 48;
+        } else if (value <= 3000) {
+          // Оранжевая зона: 48-96px (1800-3000 мс)
+          position = 48 + ((value - 1800) / (3000 - 1800)) * 48;
+        } else {
+          // Красная зона: 96-144px (3000+ мс)
+          position = Math.min(96 + ((value - 3000) / 1000) * 48, 144);
+        }
+        break;
+
+      case 'lcp':
+        if (value <= 2500) {
+          position = (value / 2500) * 48;
+        } else if (value <= 4000) {
+          position = 48 + ((value - 2500) / (4000 - 2500)) * 48;
+        } else {
+          position = Math.min(96 + ((value - 4000) / 1000) * 48, 144);
+        }
+        break;
+
+      case 'inp':
+        if (value <= 200) {
+          position = (value / 200) * 48;
+        } else if (value <= 500) {
+          position = 48 + ((value - 200) / (500 - 200)) * 48;
+        } else {
+          position = Math.min(96 + ((value - 500) / 100) * 48, 144);
+        }
+        break;
+
+      case 'ttfb':
+        if (value <= 800) {
+          position = (value / 800) * 48;
+        } else if (value <= 1200) {
+          position = 48 + ((value - 800) / (1200 - 800)) * 48;
+        } else {
+          position = Math.min(96 + ((value - 1200) / 200) * 48, 144);
+        }
+        break;
+    }
+
+    return position - 16;
+  }
+
   applyAction(action: Improvement) {
     if (
       action.applied ||
@@ -805,7 +888,10 @@ export class PerformanceComponent {
     this.progressImg.set(
       `${((this.currentLoadTime - BaseLoadTime) * 100) / BaseLoadTime}%`
     );
+
     this.animateStage();
+
+    this.updateVitals();
 
     if (this.currentLoadTime <= 200) {
       this.endGame(true);
@@ -816,6 +902,28 @@ export class PerformanceComponent {
     ) {
       this.endGame(false);
     }
+  }
+
+  updateVitals() {
+    // Рассчитываем общий фактор улучшений (0-1)
+    const totalImprovementFactor = this.totalImprovedMs / BaseLoadTime;
+
+    // Применяем улучшения к каждой метрике
+    this.currentVitals = {
+      fcp: Math.max(100, this.initialVitals.fcp * (1 - totalImprovementFactor)),
+      lcp: Math.max(100, this.initialVitals.lcp * (1 - totalImprovementFactor)),
+      inp: Math.max(
+        10,
+        this.initialVitals.inp * (1 - totalImprovementFactor * 0.7)
+      ),
+      ttfb: Math.max(
+        50,
+        this.initialVitals.ttfb * (1 - totalImprovementFactor * 0.8)
+      ),
+    };
+
+    // Обновляем визуализацию в UI
+    /* this.updateVitalsVisualization(); */
   }
 
   hasAvailableActions(): boolean {

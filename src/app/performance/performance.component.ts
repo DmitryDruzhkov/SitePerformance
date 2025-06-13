@@ -7,6 +7,8 @@ import { openDB } from 'idb';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 
+const BaseLoadTime: number = 5000;
+
 @Component({
   selector: 'app-performance',
   standalone: true,
@@ -170,6 +172,45 @@ import { MatFormFieldModule } from '@angular/material/form-field';
         font-size: 24px;
         line-height: 100%;
         color: #001e64;
+        margin-bottom: 26px;
+      }
+      .vitals {
+        display: flex;
+        flex-direction: column;
+      }
+      .vitals-item {
+        display: flex;
+        flex-direction: column;
+      }
+      .vitals-container {
+        width: 144px;
+        display: flex;
+        overflow: hidden;
+        border-radius: 6px;
+      }
+      .vitals-red {
+        width: 48px;
+        height: 13px;
+        background-color: #f44336;
+      }
+      .vitals-orange {
+        width: 48px;
+        height: 13px;
+        background-color: #ff9800;
+      }
+      .vitals-green {
+        width: 48px;
+        height: 13px;
+        background-color: #00bf6a;
+      }
+
+      .vitals-label {
+        font-weight: 700;
+        font-size: 24px;
+        line-height: 100%;
+        letter-spacing: 0%;
+        vertical-align: middle;
+        margin-top: 6px;
       }
       .improvement-title {
         font-weight: 400;
@@ -224,11 +265,11 @@ import { MatFormFieldModule } from '@angular/material/form-field';
       .metrics-timers {
         display: flex;
         justify-content: space-between;
+        align-items: center;
         margin-bottom: 40px;
       }
       .metrics-timer {
-        font-family: font family/Font 1;
-        font-weight: font weight/700;
+        font-weight: 700;
         font-size: 136px;
         line-height: 100%;
         letter-spacing: 0%;
@@ -239,12 +280,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
         display: flex;
         justify-content: center;
         gap: 2rem;
-        /* margin-bottom: 1rem; */
         flex-wrap: wrap;
       }
-      /* .circle-group.progress {
-        margin-bottom: 3rem;
-      } */
       .circle-item {
         text-align: center;
       }
@@ -313,16 +350,16 @@ import { MatFormFieldModule } from '@angular/material/form-field';
         }
       }
       .improvement-item.unaffordable {
-        border: 2px solid #CCCCCC80;
-        background-color: #CCCCCC80;
+        border: 2px solid #cccccc80;
+        background-color: #cccccc80;
 
         .improvement-details-time,
         .improvement-details-price {
-          background-color: #CCCCCC80;
-          color: #0000004D;
+          background-color: #cccccc80;
+          color: #0000004d;
         }
         .improvement-title {
-          color: #0000004D;
+          color: #0000004d;
         }
       }
       .end-block {
@@ -330,9 +367,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
         flex-direction: column;
         align-items: center;
       }
-      /* .end-block .circle-group {
-        margin-top: 5rem;
-      } */
 
       /* Radial progress bar styles */
       .radial-progress {
@@ -365,8 +399,42 @@ import { MatFormFieldModule } from '@angular/material/form-field';
         stroke: currentColor;
         stroke-width: 3px;
         stroke-linecap: round;
-        transition: stroke-dashoffset 0.5s ease-in-out;
+        transition: 0.5s ease-in-out;
       }
+      .progress-group {
+        position: relative;
+      }
+      .progress-group-back {
+        height: 24px;
+        width: 100%;
+        background-color: #cccccc80;
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      .progress-group-bar {
+        height: 24px;
+        width: 100%;
+        background-color: #ff982c;
+        border-radius: 12px;
+        position: relative;
+        top: 0;
+        right: 100%;
+        transition: 0.5s ease-in-out;
+      }
+      .progress-group-img {
+        width: 91px;
+        height: 91px;
+        position: relative;
+        top: -53px;
+        right: 0%;
+        transition: 0.5s ease-in-out;
+
+        img {
+          position: relative;
+          right: 91px;
+        }
+      }
+      
     `,
   ],
   template: `
@@ -428,7 +496,14 @@ import { MatFormFieldModule } from '@angular/material/form-field';
               {{ timerString() }}
             </div>
           </div>
-          <div class="progress-group"></div>
+          <div class="progress-group">
+            <div class="progress-group-back">
+              <div [style.right]="progress()" class="progress-group-bar"></div>
+            </div>
+            <div [style.right]="progressImg()" class="progress-group-img">
+              <img src="/assets/uh_bike.svg" />
+            </div>
+          </div>
         </div>
 
         <div *ngIf="hint">{{ hint }}</div>
@@ -451,38 +526,38 @@ import { MatFormFieldModule } from '@angular/material/form-field';
               <li>INP: {{ currentVitals.inp }} мс</li>
               <li>TTFB: {{ currentVitals.ttfb }} мс</li>
             </ul> -->
-            <div>
-              <div>
-                <div>
-                  <div></div>
-                  <div></div>
-                  <div></div>
+            <div class="vitals">
+              <div class="vitals-item">
+                <div class="vitals-container">
+                  <div class="vitals-red"></div>
+                  <div class="vitals-orange"></div>
+                  <div class="vitals-green"></div>
                 </div>
-                <div>FCP</div>
+                <div class="vitals-label">FCP</div>
               </div>
-              <div>
-                <div>
-                  <div></div>
-                  <div></div>
-                  <div></div>
+              <div class="vitals-item">
+                <div class="vitals-container">
+                  <div class="vitals-red"></div>
+                  <div class="vitals-orange"></div>
+                  <div class="vitals-green"></div>
                 </div>
-                <div>INP</div>
+                <div class="vitals-label">INP</div>
               </div>
-              <div>
-                <div>
-                  <div></div>
-                  <div></div>
-                  <div></div>
+              <div class="vitals-item">
+                <div class="vitals-container">
+                  <div class="vitals-red"></div>
+                  <div class="vitals-orange"></div>
+                  <div class="vitals-green"></div>
                 </div>
-                <div>LCP</div>
+                <div class="vitals-label">LCP</div>
               </div>
-              <div>
-                <div>
-                  <div></div>
-                  <div></div>
-                  <div></div>
+              <div class="vitals-item">
+                <div class="vitals-container">
+                  <div class="vitals-red"></div>
+                  <div class="vitals-orange"></div>
+                  <div class="vitals-green"></div>
                 </div>
-                <div>TTFB</div>
+                <div class="vitals-label">TTFB</div>
               </div>
             </div>
           </div>
@@ -560,7 +635,9 @@ export class PerformanceComponent {
 
   timeLeft = 40;
   budgetLeft = 1_500_000;
-  currentLoadTime = 5000;
+  currentLoadTime = BaseLoadTime;
+  progress: WritableSignal<string> = signal(`100%`);
+  progressImg: WritableSignal<string> = signal(`0%`);
   timer = 1200;
   timerString: WritableSignal<string> = signal('');
   stage: 'white' | 'header' | 'skeleton' | 'content' = 'white';
@@ -615,7 +692,7 @@ export class PerformanceComponent {
         label: 'Текущая загрузка',
         color: '#00BF6A',
         value: `${this.currentLoadTime} мс`,
-        fill: ((5000 - this.currentLoadTime) / 5000) * 360,
+        fill: ((BaseLoadTime - this.currentLoadTime) / BaseLoadTime) * 360,
       },
       /* {
         label: 'Суммарное улучшение',
@@ -649,7 +726,7 @@ export class PerformanceComponent {
     this.timer = 3000;
     this.timeLeft = 40;
     this.budgetLeft = 1_500_000;
-    this.currentLoadTime = 5000;
+    this.currentLoadTime = BaseLoadTime;
     this.stage = 'white';
     this.hint = '';
     this.animating = false;
@@ -724,6 +801,10 @@ export class PerformanceComponent {
       200,
       this.currentLoadTime - action.effectMs
     );
+    this.progress.set(`${(this.currentLoadTime * 100) / BaseLoadTime}%`);
+    this.progressImg.set(
+      `${((this.currentLoadTime - BaseLoadTime) * 100) / BaseLoadTime}%`
+    );
     this.animateStage();
 
     if (this.currentLoadTime <= 200) {
@@ -796,7 +877,9 @@ export class PerformanceComponent {
     this.timer = 60;
     this.timeLeft = 60;
     this.budgetLeft = 1000000;
-    this.currentLoadTime = 5000;
+    this.currentLoadTime = BaseLoadTime;
+    this.progress.set(`100%`);
+    this.progressImg.set(`0%`);
     this.gameStarted = false;
     this.gameOver = false;
     this.gameWon = false;

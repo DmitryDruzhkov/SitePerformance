@@ -8,6 +8,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 
 const BaseLoadTime: number = 5000;
+const BasePrice: number = 2600000;
+const BaseTime: number = 80;
 
 @Component({
   selector: 'app-performance',
@@ -613,7 +615,9 @@ const BaseLoadTime: number = 5000;
                 <div class="improvement-details-item improvement-details-price">
                   {{ imp.costRub }} ₽
                 </div>
-                <!-- <div>Эффект: -{{ imp.effectMs }} мс</div> -->
+                <div class="improvement-details-item improvement-details-price">
+                  Эффект: -{{ imp.effectMs }} мс
+                </div>
               </div>
             </button>
           </div>
@@ -664,8 +668,8 @@ export class PerformanceComponent {
   gameOver = false;
   gameWon = false;
 
-  timeLeft = 40;
-  budgetLeft = 1_500_000;
+  timeLeft = BaseTime;
+  budgetLeft = BasePrice;
   currentLoadTime = BaseLoadTime;
   progress: WritableSignal<string> = signal(`100%`);
   progressImg: WritableSignal<string> = signal(`0%`);
@@ -711,13 +715,13 @@ export class PerformanceComponent {
         label: 'Дней осталось',
         color: '#00A0FF',
         value: `${this.timeLeft} дн`,
-        fill: ((40 - this.timeLeft) / 40) * 360,
+        fill: ((BaseTime - this.timeLeft) / BaseTime) * 360,
       },
       {
         label: 'Оставшийся бюджет',
         color: '#001E64',
         value: `${this.budgetLeft.toLocaleString()}₽`,
-        fill: ((1500000 - this.budgetLeft) / 1500000) * 360,
+        fill: ((BasePrice - this.budgetLeft) / BasePrice) * 360,
       },
       {
         label: 'Текущая загрузка',
@@ -755,8 +759,8 @@ export class PerformanceComponent {
     this.gameOver = false;
     this.gameWon = false;
     this.timer = 3000;
-    this.timeLeft = 40;
-    this.budgetLeft = 1_500_000;
+    this.timeLeft = BaseTime;
+    this.budgetLeft = BasePrice;
     this.currentLoadTime = BaseLoadTime;
     this.stage = 'white';
     this.hint = '';

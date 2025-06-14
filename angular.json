@@ -34,6 +34,7 @@
           },
           "configurations": {
             "production": {
+              "deployUrl": "https://DmitryDruzhkov.github.io/SitePerformance/",
               "assets": [
                 {
                   "glob": "**/*",

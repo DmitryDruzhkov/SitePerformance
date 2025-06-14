@@ -9,7 +9,7 @@
     "watch": "ng build --watch --configuration development",
     "build:prod": "ng build --configuration development",
     "test": "ng test",
-    "deploy": "nx deploy --base-href=https://DmitryDruzhkov.github.io/SitePerformance/"
+    "deploy": "ng deploy"
   },
   "private": true,
   "dependencies": {

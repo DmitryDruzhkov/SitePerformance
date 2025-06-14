@@ -34,6 +34,13 @@
           },
           "configurations": {
             "production": {
+              "assets": [
+                {
+                  "glob": "**/*",
+                  "input": "assets",
+                  "output": "assets"
+                }
+              ],
               "budgets": [
                 {
                   "type": "initial",

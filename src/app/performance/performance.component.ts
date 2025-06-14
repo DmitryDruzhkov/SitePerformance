@@ -537,12 +537,6 @@ const BaseTime: number = 80;
 
           <div class="vitals-box">
             <div class="vitals-box-title">Показатели Web Vitals</div>
-            <!-- <ul>
-              <li>FCP: {{ currentVitals.fcp }} мс</li>
-              <li>LCP: {{ currentVitals.lcp }} мс</li>
-              <li>INP: {{ currentVitals.inp }} мс</li>
-              <li>TTFB: {{ currentVitals.ttfb }} мс</li>
-            </ul> -->
             <div class="vitals">
               <div class="vitals-item">
                 <div class="vitals-container">
@@ -615,9 +609,9 @@ const BaseTime: number = 80;
                 <div class="improvement-details-item improvement-details-price">
                   {{ imp.costRub }} ₽
                 </div>
-                <div class="improvement-details-item improvement-details-price">
+                <!-- <div class="improvement-details-item improvement-details-price">
                   Эффект: -{{ imp.effectMs }} мс
-                </div>
+                </div> -->
               </div>
             </button>
           </div>

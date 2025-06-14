@@ -84,6 +84,7 @@
         "deploy": {
           "builder": "angular-cli-ghpages:deploy",
           "options": {
+            "baseHref": "https://DmitryDruzhkov.github.io/SitePerformance/",
             "dir": "dist/site-performance/browser",
             "buildTarget": "SitePerformance:build:production"
           },

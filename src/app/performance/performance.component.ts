@@ -518,7 +518,7 @@ const BaseTime: number = 80;
               <div [style.right]="progress()" class="progress-group-bar"></div>
             </div>
             <div [style.right]="progressImg()" class="progress-group-img">
-              <img src="/assets/uh_bike.svg" />
+              <img src="assets/uh_bike.svg" />
             </div>
           </div>
         </div>
@@ -530,7 +530,7 @@ const BaseTime: number = 80;
         <div class="site-visuals-container">
           <img
             [@siteLoad]
-            [src]="'/assets/site-' + stage + '.png'"
+            [src]="'assets/site-' + stage + '.png'"
             class="site-image"
             alt="Website stage"
           />

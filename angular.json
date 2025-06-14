@@ -84,7 +84,14 @@
         "deploy": {
           "builder": "angular-cli-ghpages:deploy",
           "options": {
-            "buildTarget": "SitePerformance:build"
+            "baseHref": "/SitePerformance/",
+            "dir": "dist/site-performance/browser",
+            "buildTarget": "SitePerformance:build:production"
+          },
+          "configurations": {
+            "production": {
+              "buildTarget": "SitePerformance:build:production"
+            }
           }
         }
       }

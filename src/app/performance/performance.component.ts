@@ -1,11 +1,13 @@
 import { Component, signal, WritableSignal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { CommonModule, DatePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { improvements, Improvement } from './solutions';
 import { openDB } from 'idb';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import {MatTooltipModule} from '@angular/material/tooltip';
+import {MatCheckboxModule} from '@angular/material/checkbox';
 
 const BaseLoadTime: number = 5000;
 const BasePrice: number = 2600000;
@@ -14,7 +16,7 @@ const BaseTime: number = 80;
 @Component({
   selector: 'app-performance',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatFormFieldModule, MatInputModule],
+  imports: [CommonModule, FormsModule, MatFormFieldModule, MatInputModule, MatTooltipModule, MatCheckboxModule],
   animations: [
     trigger('siteLoad', [
       transition('* => *', [
@@ -29,7 +31,6 @@ const BaseTime: number = 80;
         font-weight: 700;
         font-size: 31px;
         line-height: 100%;
-        letter-spacing: 0%;
         vertical-align: middle;
       }
       .title {
@@ -56,7 +57,6 @@ const BaseTime: number = 80;
         font-weight: 400;
         font-size: 24px;
         line-height: 100%;
-        letter-spacing: 0%;
         text-align: center;
         vertical-align: middle;
       }
@@ -64,7 +64,6 @@ const BaseTime: number = 80;
         font-weight: 400;
         font-size: 32px;
         line-height: 100%;
-        letter-spacing: 0%;
         vertical-align: middle;
         margin-bottom: 1rem;
         padding: 0.5rem;
@@ -118,7 +117,6 @@ const BaseTime: number = 80;
         font-weight: 700;
         font-size: 24px;
         line-height: 100%;
-        letter-spacing: 0%;
         text-align: center;
         vertical-align: middle;
         padding: 8px 20px;
@@ -214,7 +212,6 @@ const BaseTime: number = 80;
         font-weight: 700;
         font-size: 24px;
         line-height: 100%;
-        letter-spacing: 0%;
         vertical-align: middle;
         margin-top: 6px;
       }
@@ -290,7 +287,6 @@ const BaseTime: number = 80;
         font-weight: 700;
         font-size: 136px;
         line-height: 100%;
-        letter-spacing: 0%;
         vertical-align: bottom;
         color: #03a9f459;
       }
@@ -459,19 +455,26 @@ const BaseTime: number = 80;
       <div *ngIf="!gameStarted && !gameOver" class="start-info">
         <h1>Оптимизируй загрузку сайта</h1>
         <p class="input-info">Введите ваше имя и email:</p>
-        <input [(ngModel)]="playerName" placeholder="Имя" />
+        <input [(ngModel)]="playerName" placeholder="ФИО" />
 
         <input [(ngModel)]="playerEmail" placeholder="Email" type="email" />
+
+        <input [(ngModel)]="playerPhone" placeholder="Телефон" type="tel" placeholder="8-987-654-3210" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"/>
+
+        <input [(ngModel)]="playerPosition" placeholder="Должность" />
+
+        <mat-checkbox class="example-margin">Cогласен на обработку персональных данных</mat-checkbox>
+
         <button
           class="start"
           (click)="startGame()"
-          [disabled]="!playerName || !playerEmail"
+          [disabled]="!playerName || !playerEmail || !playerPhone || !playerPosition"
         >
           Начать игру
         </button>
 
         <div class="leaderboard" *ngIf="leaderboard.length">
-          <h3>Топ 10 участников</h3>
+          <p class="input-info">Топ 10 участников:</p>
           <div *ngFor="let entry of leaderboard" class="leaderboard-item">
             {{ entry.name }} — {{ entry.score }} очков
           </div>
@@ -595,6 +598,8 @@ const BaseTime: number = 80;
             <div class="category-title">{{ category }}</div>
             <button
               *ngFor="let imp of improvementsByCategory[category]"
+              [matTooltip]="imp.description"
+              matTooltipPosition="above"
               class="improvement-item"
               [class.applied]="imp.applied"
               [class.unaffordable]="!canApply(imp) && !imp.applied"
@@ -648,14 +653,19 @@ const BaseTime: number = 80;
           </div>
         </div>
 
+        <h2>Ваш счёт {{ playerScore }}</h2>
+
         <button class="start" (click)="reset()">Новая игра</button>
       </div>
     </div>
   `,
 })
 export class PerformanceComponent {
-  playerName = '';
-  playerEmail = '';
+  playerName: string = '';
+  playerEmail: string = '';
+  playerPhone: string = '';
+  playerPosition: string = '';
+  playerScore: number = 0;
   leaderboard: { name: string; score: number }[] = [];
 
   gameStarted = false;
@@ -971,6 +981,8 @@ export class PerformanceComponent {
     this.saveResult(
       this.playerName,
       this.playerEmail,
+      this.playerPhone,
+      this.playerPosition,
       this.totalImprovedMs,
       this.timeLeft,
       this.budgetLeft
@@ -980,6 +992,7 @@ export class PerformanceComponent {
   reset() {
     this.playerName = '';
     this.playerEmail = '';
+    this.playerScore = 0;
     this.timer = 60;
     this.timeLeft = 60;
     this.budgetLeft = 1000000;
@@ -1004,6 +1017,8 @@ export class PerformanceComponent {
   async saveResult(
     playerName: string,
     playerEmail: string,
+    playerPhone: string,
+    playerPosition: string,
     totalImprovedMs: number,
     timeLeft: number,
     budgetLeft: number
@@ -1013,11 +1028,13 @@ export class PerformanceComponent {
         db.createObjectStore('results', { keyPath: 'id', autoIncrement: true });
       },
     });
-    const score = this.calculateScore(totalImprovedMs, timeLeft, budgetLeft);
+    this.playerScore = this.calculateScore(totalImprovedMs, timeLeft, budgetLeft);
     await db.add('results', {
       name: playerName,
       email: playerEmail,
-      score,
+      phone: playerPhone,
+      position: playerPosition,
+      score: this.playerScore,
       timestamp: Date.now(),
     });
     this.loadLeaderboard();

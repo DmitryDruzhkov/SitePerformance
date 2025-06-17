@@ -12,6 +12,7 @@ import {MatCheckboxModule} from '@angular/material/checkbox';
 const BaseLoadTime: number = 5000;
 const BasePrice: number = 2600000;
 const BaseTime: number = 80;
+const GameTime: number = 120;
 
 @Component({
   selector: 'app-performance',
@@ -463,7 +464,7 @@ const BaseTime: number = 80;
 
         <input [(ngModel)]="playerPosition" placeholder="Должность" />
 
-        <mat-checkbox class="example-margin">Cогласен на обработку персональных данных</mat-checkbox>
+        <mat-checkbox class="example-margin">Cогласен на обработку персональных данных</mat-checkbox> <a href="https://lenta.com/i/pokupatelyam/privacy-policy/">Политика конфиденциальности</a>
 
         <button
           class="start"
@@ -476,7 +477,7 @@ const BaseTime: number = 80;
         <div class="leaderboard" *ngIf="leaderboard.length">
           <p class="input-info">Топ 10 участников:</p>
           <div *ngFor="let entry of leaderboard" class="leaderboard-item">
-            {{ entry.name }} — {{ entry.score }} очков
+            {{ entry.name }}: {{ entry.score }} очков
           </div>
         </div>
       </div>
@@ -677,7 +678,7 @@ export class PerformanceComponent {
   currentLoadTime = BaseLoadTime;
   progress: WritableSignal<string> = signal(`100%`);
   progressImg: WritableSignal<string> = signal(`0%`);
-  timer = 1200;
+  timer = GameTime;
   timerString: WritableSignal<string> = signal('');
   stage: 'white' | 'header' | 'skeleton' | 'content' = 'white';
 
@@ -762,7 +763,7 @@ export class PerformanceComponent {
     this.gameStarted = true;
     this.gameOver = false;
     this.gameWon = false;
-    this.timer = 3000;
+    this.timer = GameTime;
     this.timeLeft = BaseTime;
     this.budgetLeft = BasePrice;
     this.currentLoadTime = BaseLoadTime;

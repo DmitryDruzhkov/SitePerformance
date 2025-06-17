@@ -6,18 +6,25 @@ import { improvements, Improvement } from './solutions';
 import { openDB } from 'idb';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import {MatTooltipModule} from '@angular/material/tooltip';
-import {MatCheckboxModule} from '@angular/material/checkbox';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
-const BaseLoadTime: number = 5000;
-const BasePrice: number = 2600000;
-const BaseTime: number = 80;
-const GameTime: number = 120;
+const BaseLoadTime: number = 5000; // начальное время загрузки
+const BasePrice: number = 2300000; // начальный бюджет
+const BaseTime: number = 70; // начальное количество дней
+const GameTime: number = 120; // начальное время игры
 
 @Component({
   selector: 'app-performance',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatFormFieldModule, MatInputModule, MatTooltipModule, MatCheckboxModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatTooltipModule,
+    MatCheckboxModule,
+  ],
   animations: [
     trigger('siteLoad', [
       transition('* => *', [
@@ -30,7 +37,7 @@ const GameTime: number = 120;
     `
       h1 {
         font-weight: 700;
-        font-size: 31px;
+        font-size: 36px;
         line-height: 100%;
         vertical-align: middle;
       }
@@ -45,7 +52,6 @@ const GameTime: number = 120;
         justify-content: center;
         padding: 2rem;
         min-height: 100vh;
-        font-family: sans-serif;
         padding: 32px;
       }
       .start-info {
@@ -80,6 +86,14 @@ const GameTime: number = 120;
           border: 2px solid #00bf6a;
         }
       }
+      .privacy {
+        width: 432px;
+
+        a {
+          padding-left: 45px;
+          font-size: 14px;
+        }
+      }
       .leaderboard {
         margin-top: 5rem;
         background: white;
@@ -97,6 +111,14 @@ const GameTime: number = 120;
       }
       .leaderboard-item:last-child {
         border-bottom: none;
+      }
+      .leaderboard-info {
+        font-weight: 700;
+        font-size: 36px;
+        line-height: 100%;
+        letter-spacing: 0%;
+        vertical-align: middle;
+        margin: 0;
       }
       button {
         cursor: pointer;
@@ -138,7 +160,7 @@ const GameTime: number = 120;
         font-size: 34px;
         font-weight: bold;
         margin-bottom: 1rem;
-        text-align: center;
+        text-align: left;
         border-radius: 16px;
         padding-top: 4px;
         padding-bottom: 4px;
@@ -153,16 +175,12 @@ const GameTime: number = 120;
         border-radius: 8px;
         transition: opacity 0.5s ease-in-out;
       }
-      /* .site-visuals-title {
-        text-align: center;
-      } */
       .site-visuals-container {
         overflow: hidden;
         height: 350px;
         display: flex;
         gap: 2rem;
         align-items: center;
-        /* justify-content: center; */
         margin-bottom: 3rem;
       }
       .vitals-box {
@@ -172,7 +190,7 @@ const GameTime: number = 120;
         font-weight: 700;
         font-size: 24px;
         line-height: 100%;
-        color: #001e64;
+        color: #000000;
         margin-bottom: 26px;
       }
       .vitals {
@@ -189,7 +207,6 @@ const GameTime: number = 120;
         width: 144px;
         display: flex;
         position: relative;
-        /* overflow: hidden; */
       }
       .vitals-red {
         width: 48px;
@@ -232,7 +249,7 @@ const GameTime: number = 120;
         font-weight: 400;
         font-size: 24px;
         vertical-align: middle;
-        margin-bottom: 8px;
+        margin-bottom: 12px;
       }
       .improvement-details {
         display: flex;
@@ -242,7 +259,7 @@ const GameTime: number = 120;
       }
       .improvement-details-item {
         font-weight: 700;
-        font-size: 15px;
+        font-size: 18px;
         line-height: 100%;
         padding: 8px 16px;
         background-color: #001e64;
@@ -337,8 +354,6 @@ const GameTime: number = 120;
         cursor: pointer;
       }
       .improvement-item:hover:not(:disabled) {
-        /* border: 2px solid #696969;
-        background-color: #f7f7f7; */
         border: 2px solid #00bf6a;
         background-color: #00bf6a40;
 
@@ -446,8 +461,37 @@ const GameTime: number = 120;
 
         img {
           position: relative;
-          right: 91px;
+          right: 48px;
         }
+      }
+      .leaderboard-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+
+      .leaderboard-table th {
+        font-weight: 700;
+        font-size: 16px;
+        line-height: 100%;
+        vertical-align: middle;
+        text-align: left;
+        margin-bottom: 24px;
+        padding: 12px 15px;
+      }
+
+      .leaderboard-table td {
+        padding: 19px 15px 12px 15px;
+        text-align: left;
+        border-bottom: 2px solid #00bf6a;
+        font-weight: 400;
+        font-size: 16px;
+        line-height: 100%;
+        vertical-align: middle;
+      }
+
+      .leaderboard-table th {
+        font-weight: bold;
       }
     `,
   ],
@@ -460,25 +504,51 @@ const GameTime: number = 120;
 
         <input [(ngModel)]="playerEmail" placeholder="Email" type="email" />
 
-        <input [(ngModel)]="playerPhone" placeholder="Телефон" type="tel" placeholder="8-987-654-3210" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"/>
+        <input
+          [(ngModel)]="playerPhone"
+          placeholder="Телефон"
+          type="tel"
+          placeholder="8-987-654-3210"
+          pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
+        />
 
         <input [(ngModel)]="playerPosition" placeholder="Должность" />
 
-        <mat-checkbox class="example-margin">Cогласен на обработку персональных данных</mat-checkbox> <a href="https://lenta.com/i/pokupatelyam/privacy-policy/">Политика конфиденциальности</a>
+        <div class="privacy">
+          <mat-checkbox>Cогласен на обработку персональных данных</mat-checkbox>
+          <a href="https://lenta.com/i/pokupatelyam/privacy-policy/"
+            >Политика конфиденциальности</a
+          >
+        </div>
 
         <button
           class="start"
           (click)="startGame()"
-          [disabled]="!playerName || !playerEmail || !playerPhone || !playerPosition"
+          [disabled]="
+            !playerName || !playerEmail || !playerPhone || !playerPosition
+          "
         >
           Начать игру
         </button>
 
         <div class="leaderboard" *ngIf="leaderboard.length">
-          <p class="input-info">Топ 10 участников:</p>
-          <div *ngFor="let entry of leaderboard" class="leaderboard-item">
-            {{ entry.name }}: {{ entry.score }} очков
-          </div>
+          <p class="leaderboard-info">Топ 10</p>
+          <table class="leaderboard-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Игрок</th>
+                <th>Очки</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let player of leaderboard; let i = index">
+                <td>{{ i + 1 }}</td>
+                <td>{{ player.name }}</td>
+                <td>{{ player.score | number }}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -509,7 +579,6 @@ const GameTime: number = 120;
                     ></circle>
                   </svg>
                 </div>
-                <!-- <div class="circle-label">{{ metric.label }}</div> -->
               </div>
             </div>
 
@@ -682,6 +751,13 @@ export class PerformanceComponent {
   timerString: WritableSignal<string> = signal('');
   stage: 'white' | 'header' | 'skeleton' | 'content' = 'white';
 
+  public displayedColumns: string[] = [
+    'position',
+    'name',
+    'demo-weight',
+    'demo-symbol',
+  ];
+
   countdownId: any;
   hint = '';
   animating = false;
@@ -710,12 +786,6 @@ export class PerformanceComponent {
 
   get circleMetrics() {
     return [
-      /* {
-        label: 'Оставшееся время',
-        color: '#4caf50',
-        value: `${this.timer} сек`,
-        fill: ((60 - this.timer) / 60) * 360,
-      }, */
       {
         label: 'Дней осталось',
         color: '#00A0FF',
@@ -734,18 +804,6 @@ export class PerformanceComponent {
         value: `${this.currentLoadTime} мс`,
         fill: ((BaseLoadTime - this.currentLoadTime) / BaseLoadTime) * 360,
       },
-      /* {
-        label: 'Суммарное улучшение',
-        color: '#8bc34a',
-        value: `-${this.totalImprovedMs} мс`,
-        fill: (this.totalImprovedMs / 5000) * 360,
-      },
-      {
-        label: 'Прогресс',
-        color: '#673ab7',
-        value: `${(100 - (this.currentLoadTime / 5000) * 100).toFixed(0)}%`,
-        fill: (100 - (this.currentLoadTime / 5000) * 100) * 3.6,
-      }, */
     ];
   }
 
@@ -993,6 +1051,8 @@ export class PerformanceComponent {
   reset() {
     this.playerName = '';
     this.playerEmail = '';
+    this.playerPhone = '';
+    this.playerPosition = '';
     this.playerScore = 0;
     this.timer = 60;
     this.timeLeft = 60;
@@ -1029,7 +1089,12 @@ export class PerformanceComponent {
         db.createObjectStore('results', { keyPath: 'id', autoIncrement: true });
       },
     });
-    this.playerScore = this.calculateScore(totalImprovedMs, timeLeft, budgetLeft);
+    this.playerScore = this.calculateScore(
+      totalImprovedMs,
+      budgetLeft,
+      timeLeft,
+      
+    );
     await db.add('results', {
       name: playerName,
       email: playerEmail,
@@ -1056,7 +1121,7 @@ export class PerformanceComponent {
     this.leaderboard = all.sort((a, b) => b.score - a.score).slice(0, 10);
   }
 
-  calculateScore(
+  /* calculateScore(
     totalImprovedMs: number,
     timeLeft: number,
     budgetLeft: number
@@ -1064,8 +1129,41 @@ export class PerformanceComponent {
     const efficiency = totalImprovedMs;
     const timeBonus = Math.max(0, timeLeft);
     const budgetBonus = Math.max(0, budgetLeft / 10000);
-    return Math.round(efficiency + timeBonus * 50 + budgetBonus);
-  }
+    return Math.round(efficiency + timeBonus + budgetBonus);
+  } */
+
+  private calculateScore(
+  /* initialTime, */      // начальное время загрузки (5000 мс)
+  finalTime: number,        // конечное время загрузки (например, 200 мс)
+  /* initialBudget,  */   // начальный бюджет (2 000 000)
+  remainingBudget: number,  // оставшийся бюджет
+  /* totalDays,  */       // общее количество дней (60)
+  remainingDays: number,    // оставшиеся дни
+  /* maxTime,     */      // максимальное время на улучшение (2 минуты = 120000 мс)
+  /* usedTime: number  */         // затраченное время на улучшения (в мс)
+) {
+  // Нормализованные параметры (чем ближе к 1, тем лучше)
+  const speedImprovement = (BaseLoadTime - (BaseLoadTime - finalTime)) / (BaseLoadTime - 200);
+  const budgetUsage = remainingBudget / BasePrice;
+  const timeUsage = 1 - ((GameTime - this.timer) / GameTime);
+  const daysUsage = remainingDays / BaseTime;
+  
+  // Весовые коэффициенты (можно настроить)
+  const speedWeight = 0.5;   // важность скорости
+  const budgetWeight = 0.2;  // важность бюджета
+  const timeWeight = 0.2;    // важность времени на улучшения
+  const daysWeight = 0.2;    // важность оставшихся дней
+  
+  // Итоговый score (0-100)
+  const score = 1000 * (
+    speedImprovement * speedWeight +
+    budgetUsage * budgetWeight +
+    timeUsage * timeWeight +
+    daysUsage * daysWeight
+  );
+  
+  return Math.max(0, Math.min(1000, Math.round(score)));
+}
 
   public formatSeconds(seconds: number): string {
     const absSeconds = Math.abs(seconds); // Учитываем отрицательное время

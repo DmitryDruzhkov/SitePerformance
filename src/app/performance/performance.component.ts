@@ -7,12 +7,12 @@ import { openDB } from 'idb';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatRadioModule } from '@angular/material/radio';
 
 const BaseLoadTime: number = 5000; // начальное время загрузки
 const BasePrice: number = 2300000; // начальный бюджет
 const BaseTime: number = 70; // начальное количество дней
-const GameTime: number = 120; // начальное время игры
+const GameTime: number = 220; // начальное время игры
 
 @Component({
   selector: 'app-performance',
@@ -23,7 +23,7 @@ const GameTime: number = 120; // начальное время игры
     MatFormFieldModule,
     MatInputModule,
     MatTooltipModule,
-    MatCheckboxModule,
+    MatRadioModule,
   ],
   animations: [
     trigger('siteLoad', [
@@ -94,6 +94,17 @@ const GameTime: number = 120; // начальное время игры
           font-size: 14px;
         }
       }
+      :host {
+        ::ng-deep {
+          .mat-mdc-radio-button {
+            .mdc-radio__outer-circle,
+            .mdc-radio__inner-circle {
+              border-color: #00bf6a !important;
+            }
+          }
+        }
+      }
+
       .leaderboard {
         margin-top: 5rem;
         background: white;
@@ -515,7 +526,14 @@ const GameTime: number = 120; // начальное время игры
         <input [(ngModel)]="playerPosition" placeholder="Должность" />
 
         <div class="privacy">
-          <mat-checkbox>Cогласен на обработку персональных данных</mat-checkbox>
+          <mat-radio-group
+            [(ngModel)]="playerPersonalAgreement"
+            aria-label="Select an option"
+          >
+            <mat-radio-button (click)="toggleAgreement()" [value]="true"
+              >Cогласен на обработку персональных данных</mat-radio-button
+            >
+          </mat-radio-group>
           <a href="https://lenta.com/i/pokupatelyam/privacy-policy/"
             >Политика конфиденциальности</a
           >
@@ -734,6 +752,7 @@ export class PerformanceComponent {
   playerName: string = '';
   playerEmail: string = '';
   playerPhone: string = '';
+  playerPersonalAgreement: boolean = false;
   playerPosition: string = '';
   playerScore: number = 0;
   leaderboard: { name: string; score: number }[] = [];
@@ -784,6 +803,14 @@ export class PerformanceComponent {
     this.loadLeaderboard();
   }
 
+  public toggleAgreement(): void {
+    if (this.playerPersonalAgreement === true) {
+      this.playerPersonalAgreement = false;
+    } else {
+      this.playerPersonalAgreement = true;
+    }
+  }
+
   get circleMetrics() {
     return [
       {
@@ -795,7 +822,7 @@ export class PerformanceComponent {
       {
         label: 'Оставшийся бюджет',
         color: '#001E64',
-        value: `${this.budgetLeft.toLocaleString()}₽`,
+        value: `${this.budgetLeft.toLocaleString()} ₽`,
         fill: ((BasePrice - this.budgetLeft) / BasePrice) * 360,
       },
       {
@@ -1037,21 +1064,14 @@ export class PerformanceComponent {
 
     clearInterval(this.countdownId);
 
-    this.saveResult(
-      this.playerName,
-      this.playerEmail,
-      this.playerPhone,
-      this.playerPosition,
-      this.totalImprovedMs,
-      this.timeLeft,
-      this.budgetLeft
-    );
+    this.saveResult();
   }
 
   reset() {
     this.playerName = '';
     this.playerEmail = '';
     this.playerPhone = '';
+    this.playerPersonalAgreement = false;
     this.playerPosition = '';
     this.playerScore = 0;
     this.timer = 60;
@@ -1075,33 +1095,28 @@ export class PerformanceComponent {
     this.currentVitals = { ...this.initialVitals };
   }
 
-  async saveResult(
-    playerName: string,
-    playerEmail: string,
-    playerPhone: string,
-    playerPosition: string,
-    totalImprovedMs: number,
-    timeLeft: number,
-    budgetLeft: number
-  ) {
+  async saveResult() {
     const db = await openDB('SpeedUpGameDB', 1, {
       upgrade(db) {
         db.createObjectStore('results', { keyPath: 'id', autoIncrement: true });
       },
     });
     this.playerScore = this.calculateScore(
-      totalImprovedMs,
-      budgetLeft,
-      timeLeft,
-      
+      this.totalImprovedMs,
+      this.budgetLeft,
+      this.timeLeft
     );
     await db.add('results', {
-      name: playerName,
-      email: playerEmail,
-      phone: playerPhone,
-      position: playerPosition,
+      name: this.playerName,
+      email: this.playerEmail,
+      phone: this.playerPhone,
+      personalAgreement: this.playerPersonalAgreement,
+      position: this.playerPosition,
       score: this.playerScore,
       timestamp: Date.now(),
+      totalImprovedMs: this.totalImprovedMs,
+      budgetLeft: this.budgetLeft,
+      timeLeft: this.timeLeft,
     });
     this.loadLeaderboard();
   }
@@ -1121,49 +1136,34 @@ export class PerformanceComponent {
     this.leaderboard = all.sort((a, b) => b.score - a.score).slice(0, 10);
   }
 
-  /* calculateScore(
-    totalImprovedMs: number,
-    timeLeft: number,
-    budgetLeft: number
-  ) {
-    const efficiency = totalImprovedMs;
-    const timeBonus = Math.max(0, timeLeft);
-    const budgetBonus = Math.max(0, budgetLeft / 10000);
-    return Math.round(efficiency + timeBonus + budgetBonus);
-  } */
-
   private calculateScore(
-  /* initialTime, */      // начальное время загрузки (5000 мс)
-  finalTime: number,        // конечное время загрузки (например, 200 мс)
-  /* initialBudget,  */   // начальный бюджет (2 000 000)
-  remainingBudget: number,  // оставшийся бюджет
-  /* totalDays,  */       // общее количество дней (60)
-  remainingDays: number,    // оставшиеся дни
-  /* maxTime,     */      // максимальное время на улучшение (2 минуты = 120000 мс)
-  /* usedTime: number  */         // затраченное время на улучшения (в мс)
-) {
-  // Нормализованные параметры (чем ближе к 1, тем лучше)
-  const speedImprovement = (BaseLoadTime - (BaseLoadTime - finalTime)) / (BaseLoadTime - 200);
-  const budgetUsage = remainingBudget / BasePrice;
-  const timeUsage = 1 - ((GameTime - this.timer) / GameTime);
-  const daysUsage = remainingDays / BaseTime;
-  
-  // Весовые коэффициенты (можно настроить)
-  const speedWeight = 0.5;   // важность скорости
-  const budgetWeight = 0.2;  // важность бюджета
-  const timeWeight = 0.2;    // важность времени на улучшения
-  const daysWeight = 0.2;    // важность оставшихся дней
-  
-  // Итоговый score (0-100)
-  const score = 1000 * (
-    speedImprovement * speedWeight +
-    budgetUsage * budgetWeight +
-    timeUsage * timeWeight +
-    daysUsage * daysWeight
-  );
-  
-  return Math.max(0, Math.min(1000, Math.round(score)));
-}
+    finalTime: number, // конечное время загрузки (например, 200 мс)
+    remainingBudget: number, // оставшийся бюджет
+    remainingDays: number // оставшиеся дни
+  ) {
+    // Нормализованные параметры (чем ближе к 1, тем лучше)
+    const speedImprovement =
+      (BaseLoadTime - (BaseLoadTime - finalTime)) / (BaseLoadTime - 200);
+    const budgetUsage = remainingBudget / BasePrice;
+    const timeUsage = 1 - (GameTime - this.timer) / GameTime;
+    const daysUsage = remainingDays / BaseTime;
+
+    // Весовые коэффициенты (можно настроить)
+    const speedWeight = 0.5; // важность скорости
+    const budgetWeight = 0.2; // важность бюджета
+    const timeWeight = 0.2; // важность времени на улучшения
+    const daysWeight = 0.2; // важность оставшихся дней
+
+    // Итоговый score (0-100)
+    const score =
+      1000 *
+      (speedImprovement * speedWeight +
+        budgetUsage * budgetWeight +
+        timeUsage * timeWeight +
+        daysUsage * daysWeight);
+
+    return Math.max(0, Math.min(1000, Math.round(score)));
+  }
 
   public formatSeconds(seconds: number): string {
     const absSeconds = Math.abs(seconds); // Учитываем отрицательное время

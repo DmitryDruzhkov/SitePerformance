@@ -60,6 +60,12 @@ const GameTime: number = 220; // начальное время игры
         align-items: center;
         justify-content: center;
       }
+      .player-info {
+        display: flex;
+        flex-direction: column;
+        width: 408px;
+        align-items: flex-start;
+      }
       .input-info {
         font-weight: 400;
         font-size: 24px;
@@ -93,6 +99,11 @@ const GameTime: number = 220; // начальное время игры
           padding-left: 45px;
           font-size: 14px;
         }
+      }
+      .start-button {
+        display: flex;
+        justify-content: center;
+        width: 100%;
       }
       :host {
         ::ng-deep {
@@ -510,63 +521,77 @@ const GameTime: number = 220; // начальное время игры
     <div class="game-container">
       <div *ngIf="!gameStarted && !gameOver" class="start-info">
         <h1>Оптимизируй загрузку сайта</h1>
-        <p class="input-info">Введите ваше имя и email:</p>
-        <input [(ngModel)]="playerName" placeholder="ФИО" />
+        <div class="player-info">
+          <p class="input-info">Введите ваше имя и email:</p>
+          <input [(ngModel)]="playerName" required placeholder="ФИО" />
 
-        <input [(ngModel)]="playerEmail" placeholder="Email" type="email" />
+          <input
+            [(ngModel)]="playerEmail"
+            required
+            placeholder="Email"
+            type="email"
+          />
 
-        <input
-          [(ngModel)]="playerPhone"
-          placeholder="Телефон"
-          type="tel"
-          placeholder="8-987-654-3210"
-          pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
-        />
+          <input
+            [(ngModel)]="playerPhone"
+            required
+            placeholder="Телефон"
+            type="tel"
+            placeholder="8-987-654-3210"
+            pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
+          />
 
-        <input [(ngModel)]="playerPosition" placeholder="Должность" />
+          <input
+            [(ngModel)]="playerPosition"
+            required
+            placeholder="Должность"
+          />
 
-        <div class="privacy">
-          <mat-radio-group
-            [(ngModel)]="playerPersonalAgreement"
-            aria-label="Select an option"
-          >
-            <mat-radio-button (click)="toggleAgreement()" [value]="true"
-              >Cогласен на обработку персональных данных</mat-radio-button
+          <div class="privacy">
+            <mat-radio-group
+              [(ngModel)]="playerPersonalAgreement"
+              aria-label="Select an option"
             >
-          </mat-radio-group>
-          <a href="https://lenta.com/i/pokupatelyam/privacy-policy/"
-            >Политика конфиденциальности</a
-          >
-        </div>
+              <mat-radio-button (click)="toggleAgreement()" [value]="true"
+                >Cогласен на обработку персональных данных</mat-radio-button
+              >
+            </mat-radio-group>
+            <a href="https://lenta.com/i/pokupatelyam/privacy-policy/"
+              >Политика конфиденциальности</a
+            >
+          </div>
 
-        <button
-          class="start"
-          (click)="startGame()"
-          [disabled]="
-            !playerName || !playerEmail || !playerPhone || !playerPosition
-          "
-        >
-          Начать игру
-        </button>
+          <div class="start-button">
+            <button
+              class="start"
+              (click)="startGame()"
+              [disabled]="
+                !playerName || !playerEmail || !playerPhone || !playerPosition
+              "
+            >
+              Начать игру
+            </button>
+          </div>
 
-        <div class="leaderboard" *ngIf="leaderboard.length">
-          <p class="leaderboard-info">Топ 10</p>
-          <table class="leaderboard-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Игрок</th>
-                <th>Очки</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let player of leaderboard; let i = index">
-                <td>{{ i + 1 }}</td>
-                <td>{{ player.name }}</td>
-                <td>{{ player.score | number }}</td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="leaderboard" *ngIf="leaderboard.length">
+            <p class="leaderboard-info">Топ 10</p>
+            <table class="leaderboard-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Игрок</th>
+                  <th>Очки</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let player of leaderboard; let i = index">
+                  <td>{{ i + 1 }}</td>
+                  <td>{{ player.name }}</td>
+                  <td>{{ player.score | number }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 

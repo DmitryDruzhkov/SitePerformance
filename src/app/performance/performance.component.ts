@@ -1,4 +1,4 @@
-import { Component, signal, WritableSignal } from '@angular/core';
+import { Component, inject, signal, WritableSignal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { trigger, transition, style, animate } from '@angular/animations';
@@ -8,6 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatRadioModule } from '@angular/material/radio';
+import { IndexedDbExportService } from './export';
 
 const BaseLoadTime: number = 5000; // начальное время загрузки
 const BasePrice: number = 2300000; // начальный бюджет
@@ -517,6 +518,10 @@ const GameTime: number = 220; // начальное время игры
       .leaderboard-table th {
         font-weight: bold;
       }
+
+      .export {
+        position: absolute;
+      }
     `,
   ],
   template: `
@@ -773,9 +778,14 @@ const GameTime: number = 220; // начальное время игры
         <button class="start" (click)="reset()">Новая игра</button>
       </div>
     </div>
+    <button class="export" (click)="exportResults()">Экспорт</button>
   `,
 })
 export class PerformanceComponent {
+  private indexedDbExport: IndexedDbExportService = inject(
+    IndexedDbExportService
+  );
+
   playerName: string = '';
   playerEmail: string = '';
   playerPhone: string = '';
@@ -1202,5 +1212,14 @@ export class PerformanceComponent {
     return `${sign}${String(minutes).padStart(2, '0')}:${String(
       remainingSeconds
     ).padStart(2, '0')}`;
+  }
+
+  public exportResults(): void {
+    this.indexedDbExport
+      .exportToJson()
+      .then(() => {
+         /* console.log('Экспорт завершен!') */
+      })
+      .catch((err) => console.error('Ошибка экспорта:', err));
   }
 }

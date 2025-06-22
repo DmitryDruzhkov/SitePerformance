@@ -93,6 +93,8 @@ const GameTime: number = 220; // начальное время игры
         }
       }
       .privacy {
+        position: relative;
+        right: 10px;
         width: 432px;
 
         a {

@@ -1,59 +1,248 @@
 <div class="game-container">
-  <div *ngIf="!gameStarted" class="intro">
-    <h2>Добро пожаловать в симулятор ускорения сайта!</h2>
-    <p>Цель: уменьшить время загрузки страницы с 5 секунд до 200 мс, не потратив более 2 месяцев и 1 млн рублей.</p>
-    <button (click)="startGame()">Начать игру</button>
-  </div>
+  <div *ngIf="!gameStarted && !gameOver" class="start-info">
+    <h1>Оптимизируй загрузку сайта</h1>
+    <div class="player-info">
+      <p class="input-info">Введите ваше имя и email:</p>
+      <input [(ngModel)]="playerName" required placeholder="ФИО" />
 
-  <div *ngIf="gameStarted" class="game-content">
-    <div class="status-bar">
-      <div>⏱ Осталось времени: {{ timeLeft }} дн.</div>
-      <div>💰 Бюджет: {{ budgetLeft | currency:'RUB' }}</div>
-      <div>🚀 Текущая скорость: {{ currentLoadTime }} мс</div>
-      <div>🕒 Таймер: {{ timer }} сек.</div>
-    </div>
+      <input
+        [(ngModel)]="playerEmail"
+        required
+        placeholder="Email"
+        type="email"
+      />
 
-    <div class="site-simulator" [@siteLoad]="stage">
-      <div *ngIf="stage === 'white'" class="white-screen">Белый экран...</div>
-      <div *ngIf="stage === 'header'" class="header">Заголовок загружается...</div>
-      <div *ngIf="stage === 'skeleton'" class="skeletons">Скелеты контента...</div>
-      <div *ngIf="stage === 'content'" class="content">Полный контент загружен!</div>
-    </div>
+      <input
+        [(ngModel)]="playerPhone"
+        required
+        placeholder="Телефон"
+        type="tel"
+        placeholder="8-987-654-3210"
+        pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
+      />
 
-    <div class="actions">
-      <h3>Улучшения по категориям</h3>
-      <div class="action-columns">
-        <div>
-          <h4>Frontend</h4>
-          <ng-container *ngFor="let action of frontendActions">
-            <button (click)="applyAction(action)">{{ action.name }} ({{ action.effect }}мс, {{ action.cost | currency:'RUB' }}, {{ action.time }}дн)</button>
-          </ng-container>
-        </div>
-        <div>
-          <h4>SSR</h4>
-          <ng-container *ngFor="let action of ssrActions">
-            <button (click)="applyAction(action)">{{ action.name }} ({{ action.effect }}мс, {{ action.cost | currency:'RUB' }}, {{ action.time }}дн)</button>
-          </ng-container>
-        </div>
-        <div>
-          <h4>Network</h4>
-          <ng-container *ngFor="let action of networkActions">
-            <button (click)="applyAction(action)">{{ action.name }} ({{ action.effect }}мс, {{ action.cost | currency:'RUB' }}, {{ action.time }}дн)</button>
-          </ng-container>
-        </div>
-        <div>
-          <h4>Backend</h4>
-          <ng-container *ngFor="let action of backendActions">
-            <button (click)="applyAction(action)">{{ action.name }} ({{ action.effect }}мс, {{ action.cost | currency:'RUB' }}, {{ action.time }}дн)</button>
-          </ng-container>
-        </div>
+      <input [(ngModel)]="playerPosition" required placeholder="Должность" />
+
+      <div class="privacy">
+        <mat-radio-group
+          [(ngModel)]="playerPersonalAgreement"
+          aria-label="Select an option"
+        >
+          <mat-radio-button (click)="toggleAgreement()" [value]="true"
+            >Cогласен на обработку персональных данных</mat-radio-button
+          >
+        </mat-radio-group>
+        <a href="https://lenta.com/i/pokupatelyam/privacy-policy/"
+          >Политика конфиденциальности</a
+        >
+      </div>
+
+      <div class="start-button">
+        <button
+          class="start"
+          (click)="startGame()"
+          [disabled]="
+            !playerName || !playerEmail || !playerPhone || !playerPosition
+          "
+        >
+          Начать игру
+        </button>
+      </div>
+
+      <div class="leaderboard" *ngIf="leaderboard.length">
+        <p class="leaderboard-info">Топ 10</p>
+        <table class="leaderboard-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Игрок</th>
+              <th>Очки</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let player of leaderboard; let i = index">
+              <td>{{ i + 1 }}</td>
+              <td>{{ player.name }}</td>
+              <td>{{ player.score | number }}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
 
-  <div *ngIf="gameOver" class="result">
-    <h2 *ngIf="gameWon">🎉 Победа! Вы достигли скорости 200мс и не потратили все ресурсы!</h2>
-    <h2 *ngIf="!gameWon">😢 Игра окончена. У вас закончились ресурсы или не достигнута цель.</h2>
-    <button (click)="reset()">Попробовать снова</button>
+  <div *ngIf="gameStarted" class="game-content">
+    <div class="metrics">
+      <div class="metrics-timers">
+        <div class="circle-group progress">
+          <div class="circle-item" *ngFor="let metric of circleMetrics">
+            <div class="radial-progress">
+              <span class="radial-progress__percent">{{ metric.value }}</span>
+              <svg class="radial-progress__svg" viewBox="0 0 36 36">
+                <circle
+                  class="radial-progress__background"
+                  cx="18"
+                  cy="18"
+                  r="15.9155"
+                ></circle>
+                <circle
+                  class="radial-progress__fill"
+                  [attr.stroke-dasharray]="'100, 100'"
+                  [attr.stroke-dashoffset]="100 - metric.fill / 3.6"
+                  [style.color]="metric.color"
+                  cx="18"
+                  cy="18"
+                  r="15.9155"
+                ></circle>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="metrics-timer">
+          {{ timerString() }}
+        </div>
+      </div>
+      <div class="progress-group">
+        <div class="progress-group-back">
+          <div [style.right]="progress()" class="progress-group-bar"></div>
+        </div>
+        <div [style.right]="progressImg()" class="progress-group-img">
+          <img src="assets/uh_bike.svg" />
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="hint">{{ hint }}</div>
+
+    <!-- <h2 class="site-visuals-title">Анимация открытия сайта</h2> -->
+
+    <div class="site-visuals-container">
+      <img
+        [@siteLoad]
+        [src]="'assets/site-' + stage + '.png'"
+        class="site-image"
+        alt="Website stage"
+      />
+
+      <div class="vitals-box">
+        <div class="vitals-box-title">Показатели Web Vitals</div>
+        <div class="vitals">
+          <div class="vitals-item">
+            <div class="vitals-container">
+              <div class="vitals-red"></div>
+              <div class="vitals-orange"></div>
+              <div class="vitals-green"></div>
+              <div
+                class="vitals-indicator"
+                [style.right.px]="calculateVitalPosition('fcp')"
+              ></div>
+            </div>
+            <div class="vitals-label">FCP</div>
+          </div>
+          <div class="vitals-item">
+            <div class="vitals-container">
+              <div class="vitals-red"></div>
+              <div class="vitals-orange"></div>
+              <div class="vitals-green"></div>
+              <div
+                class="vitals-indicator"
+                [style.right.px]="calculateVitalPosition('inp')"
+              ></div>
+            </div>
+            <div class="vitals-label">INP</div>
+          </div>
+          <div class="vitals-item">
+            <div class="vitals-container">
+              <div class="vitals-red"></div>
+              <div class="vitals-orange"></div>
+              <div class="vitals-green"></div>
+              <div
+                class="vitals-indicator"
+                [style.right.px]="calculateVitalPosition('lcp')"
+              ></div>
+            </div>
+            <div class="vitals-label">LCP</div>
+          </div>
+          <div class="vitals-item">
+            <div class="vitals-container">
+              <div class="vitals-red"></div>
+              <div class="vitals-orange"></div>
+              <div class="vitals-green"></div>
+              <div
+                class="vitals-indicator"
+                [style.right.px]="calculateVitalPosition('ttfb')"
+              ></div>
+            </div>
+            <div class="vitals-label">TTFB</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="categories-container">
+      <div class="category-column" *ngFor="let category of categories">
+        <div class="category-title">{{ category }}</div>
+        <button
+          *ngFor="let imp of improvementsByCategory[category]"
+          [matTooltip]="imp.description"
+          matTooltipPosition="above"
+          class="improvement-item"
+          [class.applied]="imp.applied"
+          [class.unaffordable]="!canApply(imp) && !imp.applied"
+          (click)="tryApplyAction(imp)"
+          [disabled]="imp.applied || !canApply(imp)"
+        >
+          <div class="improvement-title">{{ imp.name }}</div>
+          <div class="improvement-details">
+            <div class="improvement-details-item improvement-details-time">
+              {{ imp.timeDays }} дн
+            </div>
+            <div class="improvement-details-item improvement-details-price">
+              {{ imp.costRub | number }} ₽
+            </div>
+            <!-- <div class="improvement-details-item improvement-details-price">
+                  Эффект: -{{ imp.effectMs }} мс
+                </div> -->
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="gameOver" class="end-block">
+    <h1 *ngIf="gameWon">Поздравляем! Сайт стал супербыстрым! 🚀</h1>
+    <h1 *ngIf="!gameWon">Игра окончена. Попробуйте ещё раз.</h1>
+
+    <div class="circle-group">
+      <div class="circle-item" *ngFor="let metric of circleMetrics">
+        <div class="radial-progress">
+          <span class="radial-progress__percent">{{ metric.value }}</span>
+          <svg class="radial-progress__svg" viewBox="0 0 36 36">
+            <circle
+              class="radial-progress__background"
+              cx="18"
+              cy="18"
+              r="15.9155"
+            ></circle>
+            <circle
+              class="radial-progress__fill"
+              [attr.stroke-dasharray]="'100, 100'"
+              [attr.stroke-dashoffset]="100 - metric.fill / 3.6"
+              [style.color]="metric.color"
+              cx="18"
+              cy="18"
+              r="15.9155"
+            ></circle>
+          </svg>
+        </div>
+        <div class="circle-label">{{ metric.label }}</div>
+      </div>
+    </div>
+
+    <h2>Ваш счёт {{ playerScore }}</h2>
+
+    <button class="start" (click)="reset()">Новая игра</button>
   </div>
 </div>
+<button class="export" (click)="exportResults()">Экспорт</button>

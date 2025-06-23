@@ -442,7 +442,7 @@ export class PerformanceComponent {
     const daysUsage = remainingDays / BaseTime;
 
     // Весовые коэффициенты (можно настроить)
-    const speedWeight = 0.7; // важность скорости
+    const speedWeight = 0.8; // важность скорости
     const budgetWeight = 0.2; // важность бюджета на улучшение
     const daysWeight = 0.2; // важность оставшихся дней на улучшение
     const timeWeight = 0.1; // важность времени таймера игры

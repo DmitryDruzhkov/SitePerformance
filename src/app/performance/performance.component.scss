@@ -72,12 +72,12 @@ input {
 }
 :host {
   ::ng-deep {
-    .mat-mdc-radio-button {
+    /* .mat-mdc-radio-button { */
       .mdc-radio__outer-circle,
       .mdc-radio__inner-circle {
         border-color: #00bf6a !important;
       }
-    }
+    /* } */
   }
 }
 

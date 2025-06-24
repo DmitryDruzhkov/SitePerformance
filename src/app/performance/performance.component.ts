@@ -34,7 +34,7 @@ const GameTime: number = 220; // начальное время игры
       ]),
     ]),
   ],
-  styleUrls: ['./performance.component.css'],
+  styleUrls: ['./performance.component.scss'],
   templateUrl: './performance.component.html',
 })
 export class PerformanceComponent {
